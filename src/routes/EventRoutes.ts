@@ -1,11 +1,10 @@
 import express from 'express';
-import {
-  createEvent,
-  getEvents,
-  deleteEvents,
-  getEventById,
-  deleteEventById,
-} from '../controllers/EventController';
+import { createEvent } from '../controllers/events/CreateEvent';
+import { getEvents } from '../controllers/events/GetEvents';
+import { getEventById } from '../controllers/events/GetEventsById';
+import { deleteEvents } from '../controllers/events/DeleteEvents';
+import { deleteEventById } from '../controllers/events/DeleteEventById';
+
 import { authenticateUser } from '../middlewares/auth';
 
 const router = express.Router();

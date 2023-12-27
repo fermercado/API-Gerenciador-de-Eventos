@@ -1,6 +1,8 @@
 import express, { Application } from 'express';
 import dotenv from 'dotenv';
 import { connectToMongoDB } from './database/db';
+import EventRoutes from './routes/EventRoutes';
+import userRoutes from './routes/UsersRoutes';
 
 dotenv.config();
 
@@ -8,6 +10,8 @@ const app: Application = express();
 const port = process.env.PORT || 3000;
 
 app.use(express.json());
+app.use('/api/v1/users', userRoutes);
+app.use('/api/v1/events', EventRoutes);
 
 if (process.env.NODE_ENV !== 'test') {
   app.listen(port, () => {

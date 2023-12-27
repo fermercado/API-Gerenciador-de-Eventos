@@ -31,10 +31,10 @@ export const loginUser = async (req: Request, res: Response) => {
     });
 
     res.status(200).json({
+      token,
       firstName: user.firstName,
       lastName: user.lastName,
       email: user.email,
-      token,
     });
   } catch (error) {
     console.error(error);

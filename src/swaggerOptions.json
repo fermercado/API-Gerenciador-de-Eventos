@@ -1,0 +1,498 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "teste tittle",
+    "description": "teste description",
+    "termsOfService": "http://localhost:3000/terms",
+    "contact": {
+      "email": "fermercado@live.com"
+    },
+    "version": "1.0.0"
+  },
+  "paths": {
+    "/api/v1/users/sign-up": {
+      "post": {
+        "summary": "Create User",
+        "description": "This route will create a new user",
+        "tags": ["users"],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateUser"
+              },
+              "examples": {
+                "CreateUser": {
+                  "value": {
+                    "firstName": "Maria",
+                    "lastName": "Silva",
+                    "birthDate": "11/01/1988",
+                    "city": "São Paulo",
+                    "country": "Brasil",
+                    "email": "maria@email.com",
+                    "password": "password",
+                    "confirmPassword": "password"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "example": {
+                  "error": "Unauthorized",
+                  "message": "Not Authenticated"
+                }
+              }
+            }
+          },          
+          "400": {
+            "description": "User Already Exists!",
+            "content": {
+              "application/json": {
+                "example": {
+                  "errors": [
+                    {"field": "email", "message": "Email already in use"},
+                    {"field": "username", "message": "Username already in use"}
+                  ]
+                }
+              }
+            }
+          },
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreateUser"
+                },
+                "example": {
+                  "firstName": "Maria",
+                  "lastName": "Silva",
+                  "birthDate": "11/01/1988",
+                  "city": "São Paulo",
+                  "country": "Brasil",
+                  "email": "maria@email.com"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/users/sign-in": {
+      "post": {
+        "summary": "User Login",
+        "description": "This route will authenticate a user and provide a token",
+        "tags": ["users"],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LoginUser"
+              },
+              "examples": {
+                "LoginUser": {
+                  "value": {
+                    "email": "maria@email.com",
+                    "password": "password"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "example": {
+                  "error": "Unauthorized",
+                  "message": "Not Authenticated"
+                }
+              }
+            }
+          },          
+          "400": {
+            "description": "Invalid credentials",
+            "content": {
+              "application/json": {
+                "example": {
+                  "errors": [
+                    {"field": "email", "message": "Invalid email"},
+                    {"field": "password", "message": "Invalid password"}
+                  ]
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "firstName": {
+                      "type": "string"
+                    },
+                    "lastName": {
+                      "type": "string"
+                    },
+                    "email": {
+                      "type": "string"
+                    },
+                    "token": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "example": {
+                  "token": "your_generated_token_here",
+                  "firstName": "Maria",
+                  "lastName": "Silva",
+                  "email": "maria@email.com"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/events": {
+      "post": {
+        "summary": "Create Event",
+        "description": "Create a new event.",
+        "tags": ["events"],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateEvent"
+              },
+              "examples": {
+                "CreateEvent": {
+                  "value": {
+                    "description": "Event Description",
+                    "dayOfWeek": "monday"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "example": {
+                  "error": "Unauthorized",
+                  "message": "Not Authenticated"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "example": {
+                  "errors": [
+                    {"field": "description", "message": "Description is required"},
+                    {"field": "dayOfWeek", "message": "Day of week is required"}
+                  ]
+                }
+              }
+            }
+          },
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Event"
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "summary": "Get Events",
+        "description": "Get events for the authenticated user.",
+        "tags": ["events"],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "dayOfWeek",
+            "in": "query",
+            "description": "Filter events by day of the week",
+            "schema": {
+              "type": "string",
+              "enum": ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"]
+            }
+          }
+        ],
+        "responses": {
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "example": {
+                  "error": "Unauthorized",
+                  "message": "Not Authenticated"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Event"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete Events",
+        "description": "Delete all events for the authenticated user.",
+        "tags": ["events"],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "dayOfWeek",
+            "in": "query",
+            "description": "Filter events by day of the week",
+            "schema": {
+              "type": "string",
+              "enum": ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"]
+            }
+          }
+        ],
+        "responses": {
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "example": {
+                  "error": "Unauthorized",
+                  "message": "Not Authenticated"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "example": { "message": "All events deleted successfully" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/events/{id}": {
+      "get": {
+        "summary": "Get Event by ID",
+        "description": "Get a specific event by its ID.",
+        "tags": ["events"],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "ID of the event",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "example": {
+                  "error": "Unauthorized",
+                  "message": "Not Authenticated"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Event"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete Event by ID",
+        "description": "Delete a specific event by its ID.",
+        "tags": ["events"],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "ID of the event",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "example": {
+                  "error": "Unauthorized",
+                  "message": "Not Authenticated"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "example": { "message": "Event deleted successfully" }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "BearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    },
+    "schemas": {
+      "CreateUser": {
+        "type": "object",
+        "properties": {
+          "firstName": {
+            "type": "string"
+          },
+          "lastName": {
+            "type":"string"
+          },
+          "birthDate": {
+            "type":"string",
+            "format": "date"
+          },
+          "city": {
+            "type":"string"
+          },
+          "country": {
+            "type":"string"
+          },
+          "email": {
+            "type":"string"
+          },
+          "password": {
+            "type":"string"
+          },
+          "confirmPassword":{
+            "type":"string"
+          }
+        }
+      },
+      "LoginUser": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string"
+          },
+          "password": {
+            "type": "string"
+          }
+        }
+      },
+      "CreateEvent": {
+        "type": "object",
+        "properties": {
+          "description": {
+            "type": "string",
+            "description": "Description of the event"
+          },
+          "dayOfWeek": {
+            "type": "string",
+            "enum": ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"],
+            "description": "Day of the week for the event"
+          },
+          "userId": {
+            "type": "string",
+            "description": "ID of the user associated with the event"
+          }
+        },
+        "required": ["description", "dayOfWeek", "userId"]
+      },
+      "Event": {
+        "type": "object",
+        "properties": {
+          "description": {
+            "type": "string",
+            "description": "Description of the event"
+          },
+          "dayOfWeek": {
+            "type": "string",
+            "enum": ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"],
+            "description": "Day of the week for the event"
+          },
+          "userId": {
+            "type": "string",
+            "description": "ID of the user associated with the event"
+          }
+        },
+        "required": ["description", "dayOfWeek", "userId"]
+      }
+    }
+  }
+}

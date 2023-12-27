@@ -26,7 +26,6 @@ export const authenticateUser = (
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET || '');
     req.userId = (decoded as { userId: string }).userId;
-    console.log('Usuário autenticado. ID:', req.userId);
     next();
   } catch (error) {
     console.log('Erro na autenticação:', error);

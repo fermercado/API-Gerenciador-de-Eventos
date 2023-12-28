@@ -27,7 +27,7 @@ export const userValidationSchema = yup.object({
       const existingUser = await User.findOne({ email: value });
       return !existingUser;
     }),
-  password: yup.string().required('Password is required.'),
+  password: yup.string().min(6).required('Password is required.'),
   confirmPassword: yup
     .string()
     .nullable()

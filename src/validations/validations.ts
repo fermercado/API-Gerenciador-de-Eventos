@@ -4,7 +4,19 @@ import User from '../models/UserModel';
 export const userValidationSchema = yup.object({
   firstName: yup.string().required('First name is required.'),
   lastName: yup.string().required('Last name is required.'),
-  birthDate: yup.date().required('Birth date is required.'),
+  birthDate: yup
+    .string()
+    .required('Birth date is required.')
+    .test(
+      'valid-birthDate-format',
+      'Invalid birth date format. Please use YYYY-MM-DD.',
+      (value) => {
+        if (!value) return false;
+
+        const regex = /^\d{4}-\d{2}-\d{2}$/;
+        return regex.test(value);
+      },
+    ),
   city: yup.string().required('City is required.'),
   country: yup.string().required('Country is required.'),
   email: yup

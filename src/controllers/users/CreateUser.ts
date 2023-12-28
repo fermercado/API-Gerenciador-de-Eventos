@@ -18,8 +18,12 @@ export const createUser = async (req: Request, res: Response) => {
       email: req.body.email,
       password: hashedPassword,
     });
+    const userWithoutTime = {
+      ...user.toObject(),
+      birthDate: user.birthDate.toISOString().split('T')[0],
+    };
 
-    res.status(201).json(user);
+    res.status(201).json(userWithoutTime);
   } catch (error: any) {
     if (error.name === 'ValidationError') {
       const validationErrors = (error.inner || []).map((err: any) => ({

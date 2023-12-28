@@ -1,9 +1,9 @@
 {
   "openapi": "3.1.0",
   "info": {
-    "title": "teste tittle",
-    "description": "teste description",
-    "termsOfService": "http://localhost:3000/terms",
+    "title": "Challenge-3-Node-AWS",
+    "description": "Model Documentatio for challenger 3",
+    "termsOfService": "",
     "contact": {
       "email": "fermercado@live.com"
     },
@@ -14,7 +14,7 @@
       "post": {
         "summary": "Create User",
         "description": "This route will create a new user",
-        "tags": ["users"],
+        "tags": ["Users"],
         "requestBody": {
           "content": {
             "application/json": {
@@ -26,10 +26,10 @@
                   "value": {
                     "firstName": "Maria",
                     "lastName": "Silva",
-                    "birthDate": "11/01/1988",
+                    "birthDate": "1988-01-11",
                     "city": "São Paulo",
                     "country": "Brasil",
-                    "email": "maria@email.com",
+                    "email": "maria@gmail.com",
                     "password": "password",
                     "confirmPassword": "password"
                   }
@@ -73,7 +73,7 @@
                 "example": {
                   "firstName": "Maria",
                   "lastName": "Silva",
-                  "birthDate": "11/01/1988",
+                  "birthDate": "1988-01-11",
                   "city": "São Paulo",
                   "country": "Brasil",
                   "email": "maria@email.com"
@@ -88,7 +88,7 @@
       "post": {
         "summary": "User Login",
         "description": "This route will authenticate a user and provide a token",
-        "tags": ["users"],
+        "tags": ["Users"],
         "requestBody": {
           "content": {
             "application/json": {
@@ -168,7 +168,7 @@
       "post": {
         "summary": "Create Event",
         "description": "Create a new event.",
-        "tags": ["events"],
+        "tags": ["Events"],
         "security": [
           {
             "BearerAuth": []
@@ -232,7 +232,7 @@
       "get": {
         "summary": "Get Events",
         "description": "Get events for the authenticated user.",
-        "tags": ["events"],
+        "tags": ["Events"],
         "security": [
           {
             "BearerAuth": []
@@ -276,7 +276,7 @@
       "delete": {
         "summary": "Delete Events",
         "description": "Delete all events for the authenticated user.",
-        "tags": ["events"],
+        "tags": ["Events"],
         "security": [
           {
             "BearerAuth": []
@@ -320,7 +320,7 @@
       "get": {
         "summary": "Get Event by ID",
         "description": "Get a specific event by its ID.",
-        "tags": ["events"],
+        "tags": ["Events"],
         "security": [
           {
             "BearerAuth": []
@@ -364,7 +364,7 @@
       "delete": {
         "summary": "Delete Event by ID",
         "description": "Delete a specific event by its ID.",
-        "tags": ["events"],
+        "tags": ["Events"],
         "security": [
           {
             "BearerAuth": []
@@ -424,8 +424,8 @@
             "type":"string"
           },
           "birthDate": {
-            "type":"string",
-            "format": "date"
+            "type": "string",
+            "format":"date"
           },
           "city": {
             "type":"string"

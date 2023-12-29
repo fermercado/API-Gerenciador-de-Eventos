@@ -25,7 +25,6 @@ export const getEventById = async (req: Request, res: Response) => {
 
     res.status(200).json(event);
   } catch (error) {
-    console.error(error);
     res.status(500).json({
       statusCode: 500,
       error: 'Internal Server Error',

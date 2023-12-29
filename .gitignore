@@ -5,3 +5,7 @@ package-lock.json
 *.tsbuildinfo
 .env
 .vscode/
+coverage/
+jest.setup.js
+testResults.json
+jest.cache/

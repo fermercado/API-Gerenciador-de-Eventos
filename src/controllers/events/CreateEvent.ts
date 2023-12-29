@@ -14,7 +14,7 @@ export const createEvent = async (req: Request, res: Response) => {
     if (!req.userId) {
       return res.status(401).json({
         error: 'Unauthorized',
-        message: 'User not authenticated',
+        message: 'Not authenticated',
       });
     }
 

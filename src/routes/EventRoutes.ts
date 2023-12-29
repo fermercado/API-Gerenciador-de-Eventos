@@ -17,8 +17,8 @@ router.get('/', authenticateUser, getEvents);
 
 router.get('/:id', authenticateUser, getEventById);
 
-router.delete('/', authenticateUser, deleteEvents);
-
 router.delete('/:id', authenticateUser, deleteEventById);
+
+router.delete('/', authenticateUser, deleteEvents);
 
 export default router;

@@ -17,7 +17,6 @@ export const authenticateUser = (
   const token = req.header('Authorization')?.replace('Bearer ', '');
 
   if (!token) {
-    console.log('Token não encontrado');
     return res
       .status(401)
       .json({ error: 'Unauthorized', message: 'Not Authenticated' });
@@ -28,7 +27,6 @@ export const authenticateUser = (
     req.userId = (decoded as { userId: string }).userId;
     next();
   } catch (error) {
-    console.log('Erro na autenticação:', error);
     return res
       .status(401)
       .json({ error: 'Unauthorized', message: 'Not Authenticated' });

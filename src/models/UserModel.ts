@@ -29,4 +29,6 @@ UserSchema.set('toObject', {
   },
 });
 
-export default mongoose.model<User>('User', UserSchema);
+const UserModel = mongoose.model<User>('User', UserSchema);
+
+export default UserModel;

@@ -7,27 +7,32 @@ export const deleteEventById = async (req: Request, res: Response) => {
 
     if (!eventId) {
       return res.status(400).json({
-        statusCode: 400,
         error: 'Bad Request',
         message: 'Event ID is required.',
       });
     }
 
-    const deletedEvent = await Event.findByIdAndDelete(eventId);
+    const event = await Event.findById(eventId);
 
-    if (!deletedEvent) {
+    if (!event) {
       return res.status(404).json({
-        statusCode: 404,
         error: 'Not Found',
         message: 'Event not found for deletion.',
       });
     }
 
+    if (event.userId.toString() !== req.userId) {
+      return res.status(403).json({
+        error: 'Forbidden',
+        message: 'You do not have permission to delete this event.',
+      });
+    }
+
+    await Event.findByIdAndDelete(eventId);
     res.sendStatus(204);
   } catch (error) {
     console.error(error);
     res.status(500).json({
-      statusCode: 500,
       error: 'Internal Server Error',
       message: 'Something went wrong',
     });

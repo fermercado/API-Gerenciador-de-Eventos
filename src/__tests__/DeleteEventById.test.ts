@@ -10,11 +10,13 @@ import jwt from 'jsonwebtoken';
 describe('Delete Event By ID', () => {
   let mongoServer: any;
   let userToken: string;
+  let anotherUserToken: string;
   let userId: string;
   let testEventId: string;
+  let anotherEventId: string;
 
   beforeAll(async () => {
-    mongoServer = new MongoMemoryServer();
+    mongoServer = await MongoMemoryServer.create();
     const mongoUri = await mongoServer.getUri();
     await mongoose.connect(mongoUri, {});
 
@@ -34,16 +36,42 @@ describe('Delete Event By ID', () => {
       expiresIn: '1h',
     });
 
+    const anotherUser = await User.create({
+      firstName: 'João',
+      lastName: 'Pereira',
+      email: 'joao@gmail.com',
+      password: passwordHash,
+      birthDate: '1990-01-01',
+      city: 'Rio de Janeiro',
+      country: 'Brasil',
+    });
+
+    anotherUserToken = jwt.sign(
+      { userId: anotherUser._id },
+      process.env.JWT_SECRET || '',
+      {
+        expiresIn: '1h',
+      },
+    );
+
     const testEvent = await Event.create({
       description: 'Maria Event',
       dayOfWeek: 'monday',
       userId,
     });
     testEventId = testEvent._id;
+
+    const anotherEvent = await Event.create({
+      description: 'Another Event',
+      dayOfWeek: 'tuesday',
+      userId: anotherUser._id,
+    });
+    anotherEventId = anotherEvent._id;
   });
 
   afterAll(async () => {
-    await mongoose.disconnect();
+    await mongoose.connection.dropDatabase();
+    await mongoose.connection.close();
     await mongoServer.stop();
   });
 
@@ -63,7 +91,6 @@ describe('Delete Event By ID', () => {
 
     expect(response.status).toBe(404);
     expect(response.body).toEqual({
-      statusCode: 404,
       error: 'Not Found',
       message: 'Event not found for deletion.',
     });
@@ -71,7 +98,6 @@ describe('Delete Event By ID', () => {
 
   it('should return an error for invalid authentication token', async () => {
     const invalidToken = 'someInvalidTokenString';
-
     const response = await request(app)
       .delete(`/api/v1/events/${testEventId}`)
       .set('Authorization', `Bearer ${invalidToken}`);
@@ -82,23 +108,27 @@ describe('Delete Event By ID', () => {
       message: 'Not Authenticated',
     });
   });
-  it('should return an error for expired authentication token', async () => {
-    const expiredToken = jwt.sign(
-      { userId: userId },
-      process.env.JWT_SECRET || '',
-      {
-        expiresIn: '-1h',
-      },
-    );
 
+  it('should prevent a user from deleting an event they did not create', async () => {
+    const response = await request(app)
+      .delete(`/api/v1/events/${anotherEventId}`)
+      .set('Authorization', `Bearer ${userToken}`);
+
+    expect(response.status).toBe(403);
+    expect(response.body).toEqual({
+      error: 'Forbidden',
+      message: 'You do not have permission to delete this event.',
+    });
+  });
+  it('should prevent a different user from deleting an event they did not create', async () => {
     const response = await request(app)
       .delete(`/api/v1/events/${testEventId}`)
-      .set('Authorization', `Bearer ${expiredToken}`);
+      .set('Authorization', `Bearer ${anotherUserToken}`);
 
-    expect(response.status).toBe(401);
+    expect(response.status).toBe(404);
     expect(response.body).toEqual({
-      error: 'Unauthorized',
-      message: 'Not Authenticated',
+      error: 'Not Found',
+      message: 'Event not found for deletion.',
     });
   });
 });

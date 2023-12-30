@@ -247,6 +247,14 @@
               "type": "string",
               "enum": ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"]
             }
+          },
+          {
+            "name": "description",
+            "in": "query",
+            "description": "Search for events by their description",
+            "schema": {
+              "type": "string"
+            }
           }
         ],
         "responses": {
@@ -273,6 +281,7 @@
           }
         }
       },
+      
       "delete": {
         "summary": "Delete Events",
         "description": "Delete all events for the authenticated user.",

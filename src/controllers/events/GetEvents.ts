@@ -4,6 +4,7 @@ import Event from '../../models/EventModel';
 interface Query {
   description?: { $regex: string; $options: 'i' };
   dayOfWeek?: string;
+  userId?: string;
 }
 
 export const getEvents = async (req: Request, res: Response) => {
@@ -15,14 +16,16 @@ export const getEvents = async (req: Request, res: Response) => {
       });
     }
 
-    const { description, dayOfWeek } = req.query;
-
+    const { description, dayOfWeek, onlyMyEvents } = req.query;
     const query: Query = {};
+
+    if (onlyMyEvents === 'true') {
+      query.userId = req.userId;
+    }
 
     if (description) {
       query.description = { $regex: description as string, $options: 'i' };
     }
-
     if (dayOfWeek) {
       query.dayOfWeek = dayOfWeek as string;
     }
@@ -30,9 +33,12 @@ export const getEvents = async (req: Request, res: Response) => {
     const events = await Event.find(query);
 
     if (events.length === 0) {
-      return res
-        .status(200)
-        .json({ message: 'There are no events for this day of the week.' });
+      if (onlyMyEvents === 'true') {
+        return res
+          .status(200)
+          .json({ message: 'No events created by this user.' });
+      }
+      return res.status(200).json({ message: 'No events found' });
     }
 
     res.status(200).json(events);

@@ -98,7 +98,7 @@
               "examples": {
                 "LoginUser": {
                   "value": {
-                    "email": "maria@email.com",
+                    "email": "maria@gmail.com",
                     "password": "password"
                   }
                 }
@@ -254,6 +254,15 @@
             "description": "Search for events by their description",
             "schema": {
               "type": "string"
+            }
+          },
+          {
+            "name": "onlyMyEvents",
+            "in": "query",
+            "description": "Search only for events created by the authenticated user",
+            "schema": {
+              "type": "boolean",
+              "default": false
             }
           }
         ],

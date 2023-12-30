@@ -128,7 +128,7 @@ describe('Get Events', () => {
       .query({ onlyMyEvents: 'true' })
       .set('Authorization', `Bearer ${newUserToken}`);
 
-    expect(response.status).toBe(200);
+    expect(response.status).toBe(404);
     expect(response.body).toEqual({
       message: 'No events created by this user.',
     });

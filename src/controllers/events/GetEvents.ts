@@ -35,7 +35,7 @@ export const getEvents = async (req: Request, res: Response) => {
     if (events.length === 0) {
       if (onlyMyEvents === 'true') {
         return res
-          .status(200)
+          .status(404)
           .json({ message: 'No events created by this user.' });
       }
       return res.status(200).json({ message: 'No events found' });
@@ -46,7 +46,7 @@ export const getEvents = async (req: Request, res: Response) => {
     console.error(error);
     res.status(500).json({
       error: 'Internal Server Error',
-      message: 'Something went wrong while retrieving the events',
+      message: 'Something went wrong',
     });
   }
 };

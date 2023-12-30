@@ -37,7 +37,7 @@ export const createEvent = async (req: Request, res: Response) => {
     console.error(error);
     res.status(500).json({
       error: 'Internal Server Error',
-      message: 'Something went wrong while creating the event',
+      message: 'Something went wrong',
     });
   }
 };

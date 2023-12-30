@@ -13,7 +13,7 @@ describe('Delete Events', () => {
   let userId: string;
 
   beforeAll(async () => {
-    mongoServer = new MongoMemoryServer();
+    mongoServer = await MongoMemoryServer.create();
     const mongoUri = await mongoServer.getUri();
     await mongoose.connect(mongoUri, {});
 
@@ -28,7 +28,7 @@ describe('Delete Events', () => {
       country: 'Brasil',
     });
 
-    userId = user._id;
+    userId = user._id.toString();
     userToken = jwt.sign({ userId: userId }, process.env.JWT_SECRET || '', {
       expiresIn: '1h',
     });
@@ -40,21 +40,42 @@ describe('Delete Events', () => {
   });
 
   afterAll(async () => {
-    await mongoose.disconnect();
+    await mongoose.connection.dropDatabase();
+    await mongoose.connection.close();
     await mongoServer.stop();
   });
 
-  it('should successfully delete events for a specific day of the week', async () => {
+  it('should delete and return events by day', async () => {
     const response = await request(app)
       .delete('/api/v1/events')
       .query({ dayOfWeek: 'monday' })
       .set('Authorization', `Bearer ${userToken}`);
 
     expect(response.status).toBe(200);
-    expect(response.body).toEqual({ message: 'Events deleted successfully.' });
+    expect(response.body.deletedEvents).toBeInstanceOf(Array);
+    expect(response.body.deletedEvents).toHaveLength(1);
+    expect(response.body.deletedEvents[0].dayOfWeek).toBe('monday');
+    expect(response.body.deletedEvents[0]).toHaveProperty('description');
+    expect(response.body.deletedEvents[0]).toHaveProperty('_id');
+    expect(response.body.deletedEvents[0]).toHaveProperty('userId');
   });
 
-  it('should return a 400 error for an invalid day of the week', async () => {
+  it('deletes and returns events', async () => {
+    const response = await request(app)
+      .delete('/api/v1/events')
+      .query({ dayOfWeek: 'tuesday' }) // Modificado para 'tuesday'
+      .set('Authorization', `Bearer ${userToken}`);
+
+    expect(response.status).toBe(200);
+    expect(response.body.deletedEvents).toBeInstanceOf(Array);
+    expect(response.body.deletedEvents.length).toBeGreaterThan(0);
+    expect(response.body.deletedEvents[0]).toHaveProperty(
+      'dayOfWeek',
+      'tuesday',
+    );
+  });
+
+  it('errors on invalid day', async () => {
     const response = await request(app)
       .delete('/api/v1/events')
       .query({ dayOfWeek: 'invalid-day' })
@@ -68,7 +89,7 @@ describe('Delete Events', () => {
     });
   });
 
-  it('should return a 400 error for missing day of the week', async () => {
+  it('errors without day', async () => {
     const response = await request(app)
       .delete('/api/v1/events')
       .set('Authorization', `Bearer ${userToken}`);

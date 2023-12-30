@@ -64,7 +64,6 @@ describe('Get Event By ID', () => {
 
     expect(response.status).toBe(404);
     expect(response.body).toEqual({
-      statusCode: 404,
       error: 'Not Found',
       message: 'Event not found for deletion.',
     });

@@ -3,7 +3,15 @@ import Event from '../../models/EventModel';
 
 export const deleteEvents = async (req: Request, res: Response) => {
   try {
-    const { dayOfWeek } = req.query as { dayOfWeek: string };
+    const { dayOfWeek } = req.query as { dayOfWeek?: string };
+
+    if (!req.userId) {
+      return res.status(401).json({
+        statusCode: 401,
+        error: 'Unauthorized',
+        message: 'Not Authenticated',
+      });
+    }
 
     if (!dayOfWeek) {
       return res.status(400).json({
@@ -22,7 +30,7 @@ export const deleteEvents = async (req: Request, res: Response) => {
       'friday',
       'saturday',
     ];
-    if (!validDaysOfWeek.includes(dayOfWeek)) {
+    if (!validDaysOfWeek.includes(dayOfWeek.toLowerCase())) {
       return res.status(400).json({
         statusCode: 400,
         error: 'Bad Request',
@@ -30,18 +38,38 @@ export const deleteEvents = async (req: Request, res: Response) => {
       });
     }
 
-    const deletedEvents = await Event.deleteMany({
+    const eventsToDelete = await Event.find({
       userId: req.userId,
-      dayOfWeek,
+      dayOfWeek: dayOfWeek.toLowerCase(),
+    }).lean();
+
+    if (eventsToDelete.length === 0) {
+      return res.status(404).json({
+        statusCode: 404,
+        error: 'Not Found',
+        message: 'No events found for deletion.',
+      });
+    }
+
+    await Event.deleteMany({
+      userId: req.userId,
+      dayOfWeek: dayOfWeek.toLowerCase(),
     });
 
-    if (deletedEvents.deletedCount > 0) {
-      return res.status(200).json({ message: 'Events deleted successfully.' });
-    } else {
-      return res.status(404).json({ message: 'No events found for deletion.' });
-    }
+    const deletedEvents = eventsToDelete.map((event) => ({
+      _id: event._id.toString(),
+      description: event.description,
+      dayOfWeek: event.dayOfWeek,
+      userId: event.userId.toString(),
+    }));
+
+    return res.status(200).json({ deletedEvents });
   } catch (error) {
     console.error(error);
-    return res.status(500).json({ message: 'Internal Server Error' });
+    return res.status(500).json({
+      statusCode: 500,
+      error: 'Internal Server Error',
+      message: 'Something went wrong',
+    });
   }
 };

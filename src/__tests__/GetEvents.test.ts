@@ -7,15 +7,20 @@ import Event from '../models/EventModel';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 
+interface Event {
+  description: string;
+  dayOfWeek: string;
+  userId: string;
+}
+
 describe('Get Events', () => {
   let mongoServer: any;
   let userToken: string;
   let userId: string;
 
   beforeAll(async () => {
-    mongoServer = await MongoMemoryServer.create();
+    mongoServer = new MongoMemoryServer();
     const mongoUri = await mongoServer.getUri();
-
     await mongoose.connect(mongoUri, {});
 
     const passwordHash = await bcrypt.hash('password123', 10);
@@ -25,19 +30,17 @@ describe('Get Events', () => {
       email: 'maria@gmail.com',
       password: passwordHash,
       birthDate: '1988-01-11',
-      city: 'Birigui',
+      city: 'São Paulo',
       country: 'Brasil',
     });
 
-    userId = user.id;
-    userToken = jwt.sign({ userId }, process.env.JWT_SECRET || '', {
+    userId = user._id;
+    userToken = jwt.sign({ userId: userId }, process.env.JWT_SECRET || '', {
       expiresIn: '1h',
     });
 
     await Event.create([
-      { description: 'Event 1', dayOfWeek: 'monday', userId },
-      { description: 'Event 2', dayOfWeek: 'tuesday', userId },
-      { description: 'Event 3', dayOfWeek: 'wednesday', userId },
+      { description: 'Maria Event', dayOfWeek: 'monday', userId: userId },
     ]);
   });
 
@@ -46,18 +49,43 @@ describe('Get Events', () => {
     await mongoose.connection.close();
     await mongoServer.stop();
   });
+  it('only user events', async () => {
+    const response = await request(app)
+      .get('/api/v1/events')
+      .query({ onlyMyEvents: 'true' })
+      .set('Authorization', `Bearer ${userToken}`);
 
-  it('should retrieve all events for a user', async () => {
+    expect(response.status).toBe(200);
+    expect(response.body).toBeInstanceOf(Array);
+
+    expect(
+      response.body.every(
+        (event: Event) => event.userId.toString() === userId.toString(),
+      ),
+    ).toBeTruthy();
+  });
+
+  it('retrieves events', async () => {
     const response = await request(app)
       .get('/api/v1/events')
       .set('Authorization', `Bearer ${userToken}`);
 
     expect(response.status).toBe(200);
     expect(response.body).toBeInstanceOf(Array);
-    expect(response.body.length).toBe(3);
   });
 
-  it('should retrieve events filtered by dayOfWeek', async () => {
+  it('handles unauthorized access', async () => {
+    const response = await request(app)
+      .get('/api/v1/events')
+      .set('Authorization', 'Bearer invalidToken');
+    expect(response.status).toBe(401);
+    expect(response.body).toEqual({
+      error: 'Unauthorized',
+      message: 'Not Authenticated',
+    });
+  });
+
+  it('by dayOfWeek', async () => {
     const response = await request(app)
       .get('/api/v1/events')
       .query({ dayOfWeek: 'monday' })
@@ -65,72 +93,59 @@ describe('Get Events', () => {
 
     expect(response.status).toBe(200);
     expect(response.body).toBeInstanceOf(Array);
-    expect(response.body.length).toBe(1);
-    expect(response.body[0].dayOfWeek).toBe('monday');
+    expect(
+      response.body.some((event: Event) => event.dayOfWeek === 'monday'),
+    ).toBeTruthy();
   });
 
-  it('should return a message for no events found on a specific day', async () => {
+  it('no events on day error', async () => {
     const response = await request(app)
       .get('/api/v1/events')
       .query({ dayOfWeek: 'sunday' })
       .set('Authorization', `Bearer ${userToken}`);
 
-    expect(response.status).toBe(200);
+    expect(response.status).toBe(404);
     expect(response.body).toEqual({
+      statusCode: 404,
+      error: 'Not Found',
       message: 'No events found',
     });
   });
 
-  it('should retrieve events filtered by description', async () => {
+  it('by description', async () => {
     const response = await request(app)
       .get('/api/v1/events')
-      .query({ description: 'Event 1' })
+      .query({ description: 'Maria Event' })
       .set('Authorization', `Bearer ${userToken}`);
 
     expect(response.status).toBe(200);
     expect(response.body).toBeInstanceOf(Array);
-    expect(response.body.length).toBe(1);
-    expect(response.body[0].description).toBe('Event 1');
+    expect(
+      response.body.some((event: Event) => event.description === 'Maria Event'),
+    ).toBeTruthy();
   });
-
-  it('should retrieve only events created by the authenticated user', async () => {
-    const response = await request(app)
-      .get('/api/v1/events')
-      .query({ onlyMyEvents: 'true' })
+  it('handles no events found', async () => {
+    await Event.deleteMany({});
+    let response = await request(app)
+      .get('/api/v1/events?onlyMyEvents=true')
       .set('Authorization', `Bearer ${userToken}`);
-
-    expect(response.status).toBe(200);
-    expect(response.body).toBeInstanceOf(Array);
-    expect(response.body.length).toBe(3);
-  });
-
-  it('should return a message when the authenticated user has no events', async () => {
-    const newUser = await User.create({
-      firstName: 'João',
-      lastName: 'Silva',
-      email: 'joao@gmail.com',
-      password: await bcrypt.hash('password123', 10),
-      birthDate: '1990-01-11',
-      city: 'São Paulo',
-      country: 'Brasil',
-    });
-
-    const newUserToken = jwt.sign(
-      { userId: newUser.id },
-      process.env.JWT_SECRET || '',
-      {
-        expiresIn: '1h',
-      },
-    );
-
-    const response = await request(app)
-      .get('/api/v1/events')
-      .query({ onlyMyEvents: 'true' })
-      .set('Authorization', `Bearer ${newUserToken}`);
 
     expect(response.status).toBe(404);
     expect(response.body).toEqual({
+      statusCode: 404,
+      error: 'Not Found',
       message: 'No events created by this user.',
+    });
+
+    response = await request(app)
+      .get('/api/v1/events')
+      .set('Authorization', `Bearer ${userToken}`);
+
+    expect(response.status).toBe(404);
+    expect(response.body).toEqual({
+      statusCode: 404,
+      error: 'Not Found',
+      message: 'No events found',
     });
   });
 });

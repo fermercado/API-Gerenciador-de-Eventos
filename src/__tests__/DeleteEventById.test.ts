@@ -75,7 +75,7 @@ describe('Delete Event By ID', () => {
     await mongoServer.stop();
   });
 
-  it('should successfully delete an event by ID', async () => {
+  it('deletes event by ID', async () => {
     const response = await request(app)
       .delete(`/api/v1/events/${testEventId}`)
       .set('Authorization', `Bearer ${userToken}`);
@@ -83,7 +83,7 @@ describe('Delete Event By ID', () => {
     expect(response.status).toBe(204);
   });
 
-  it('should return a 404 for a non-existent event ID', async () => {
+  it('handles non-existent ID', async () => {
     const nonExistentId = new mongoose.Types.ObjectId();
     const response = await request(app)
       .delete(`/api/v1/events/${nonExistentId}`)
@@ -91,12 +91,13 @@ describe('Delete Event By ID', () => {
 
     expect(response.status).toBe(404);
     expect(response.body).toEqual({
+      statusCode: 404,
       error: 'Not Found',
       message: 'Event not found for deletion.',
     });
   });
 
-  it('should return an error for invalid authentication token', async () => {
+  it('handles invalid token', async () => {
     const invalidToken = 'someInvalidTokenString';
     const response = await request(app)
       .delete(`/api/v1/events/${testEventId}`)
@@ -109,24 +110,26 @@ describe('Delete Event By ID', () => {
     });
   });
 
-  it('should prevent a user from deleting an event they did not create', async () => {
+  it('prevents deleting others events', async () => {
     const response = await request(app)
       .delete(`/api/v1/events/${anotherEventId}`)
       .set('Authorization', `Bearer ${userToken}`);
 
-    expect(response.status).toBe(403);
+    expect(response.status).toBe(400);
     expect(response.body).toEqual({
-      error: 'Forbidden',
+      statusCode: 400,
+      error: 'Bad Request',
       message: 'You do not have permission to delete this event.',
     });
   });
-  it('should prevent a different user from deleting an event they did not create', async () => {
+  it('prevents deletion by different user', async () => {
     const response = await request(app)
       .delete(`/api/v1/events/${testEventId}`)
       .set('Authorization', `Bearer ${anotherUserToken}`);
 
     expect(response.status).toBe(404);
     expect(response.body).toEqual({
+      statusCode: 404,
       error: 'Not Found',
       message: 'Event not found for deletion.',
     });

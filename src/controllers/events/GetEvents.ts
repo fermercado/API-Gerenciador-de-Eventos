@@ -11,6 +11,7 @@ export const getEvents = async (req: Request, res: Response) => {
   try {
     if (!req.userId) {
       return res.status(401).json({
+        statusCode: 401,
         error: 'Unauthorized',
         message: 'Not authenticated',
       });
@@ -33,18 +34,21 @@ export const getEvents = async (req: Request, res: Response) => {
     const events = await Event.find(query);
 
     if (events.length === 0) {
-      if (onlyMyEvents === 'true') {
-        return res
-          .status(404)
-          .json({ message: 'No events created by this user.' });
-      }
-      return res.status(200).json({ message: 'No events found' });
+      return res.status(404).json({
+        statusCode: 404,
+        error: 'Not Found',
+        message:
+          onlyMyEvents === 'true'
+            ? 'No events created by this user.'
+            : 'No events found',
+      });
     }
 
     res.status(200).json(events);
   } catch (error) {
     console.error(error);
     res.status(500).json({
+      statusCode: 500,
       error: 'Internal Server Error',
       message: 'Something went wrong',
     });

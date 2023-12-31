@@ -47,7 +47,7 @@ describe('Get Event By ID', () => {
     await mongoServer.stop();
   });
 
-  it('should retrieve an event by ID', async () => {
+  it('retrieves event by ID', async () => {
     const response = await request(app)
       .get(`/api/v1/events/${testEventId}`)
       .set('Authorization', `Bearer ${userToken}`);
@@ -56,7 +56,7 @@ describe('Get Event By ID', () => {
     expect(response.body).toHaveProperty('_id', testEventId.toString());
   });
 
-  it('should return a 404 for a non-existent event ID', async () => {
+  it('handles non-existent ID', async () => {
     const nonExistentId = new mongoose.Types.ObjectId();
     const response = await request(app)
       .delete(`/api/v1/events/${nonExistentId}`)
@@ -64,12 +64,13 @@ describe('Get Event By ID', () => {
 
     expect(response.status).toBe(404);
     expect(response.body).toEqual({
+      statusCode: 404,
       error: 'Not Found',
       message: 'Event not found for deletion.',
     });
   });
 
-  it('should return a 500 error for server error', async () => {
+  it('handles server error', async () => {
     jest.spyOn(Event, 'findOne').mockImplementationOnce(() => {
       throw new Error();
     });

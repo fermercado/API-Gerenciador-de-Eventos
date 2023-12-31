@@ -39,7 +39,7 @@
           }
         },
         "responses": {
-          "201": {
+          "200": {
             "description": "User created",
             "content": {
               "application/json": {
@@ -61,6 +61,9 @@
             "description": "Invalid input",
             "content": {
               "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationError"
+                },
                 "example": {
                   "type":"Validation Error",
                   "errors": [
@@ -74,6 +77,9 @@
             "description": "Internal Server Error",
             "content": {
               "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InternalServerError"
+                },
                 "example": {
                   "statusCode": 500,
                   "error": "Internal Server Error",
@@ -94,7 +100,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/LoginUser"
+                "$ref": "#/components/schemas/LoginUserRequest"
               },
               "examples": {
                 "LoginUser": {
@@ -112,6 +118,9 @@
             "description": "Invalid credentials",
             "content": {
               "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationError"
+                },
                 "example": {
                   "type":"Validation Error",
                   "errors": [
@@ -127,21 +136,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "properties": {
-                    "firstName": {
-                      "type": "string"
-                    },
-                    "lastName": {
-                      "type": "string"
-                    },
-                    "email": {
-                      "type": "string"
-                    },
-                    "token": {
-                      "type": "string"
-                    }
-                  }
+                  "$ref": "#/components/schemas/LoginUserResponse"
                 },
                 "example": {
                   "token": "your_generated_token_here",
@@ -156,6 +151,9 @@
             "description": "Internal Server Error",
             "content": {
               "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InternalServerError"
+                },
                 "example": {
                   "statusCode": 500,
                   "error": "Internal Server Error",
@@ -200,6 +198,9 @@
             "description": "Unauthorized",
             "content": {
               "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UnauthorizedError"
+                },
                 "example": {
                   "statusCode":401,
                   "error": "Unauthorized",
@@ -212,8 +213,12 @@
             "description": "Bad Request",
             "content": {
               "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationError"
+                },
                 "example": {
                   "type":"Validation Error",
+                  "statusCode":400,
                   "errors": [
                     {"field": "description", "message": "Description is required"},
                     {"field": "dayOfWeek", "message": "Day of week is required"}
@@ -222,20 +227,23 @@
               }
             }
           },
-          "201": {
-            "description": "Successful operation",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Event"
-                }
-              }
+         "200": {
+        "description": " Successfull operation",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/DeletedEventsResponse"
             }
-          },
+          }
+        }
+      },
           "500": {
             "description": "Internal Server Error",
             "content": {
               "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InternalServerError"
+                },
                 "example": {
                   "statusCode":500,
                   "error": "Internal Server Error",
@@ -284,24 +292,30 @@
           }
         ],
         "responses": {
-          "401": {
-            "description": "Unauthorized",
-            "content": {
-              "application/json": {
-                "example": {
-                  "statusCode":401,
-                  "error": "Unauthorized",
-                  "message": "Not Authenticated"
-                }
-              }
-            }
-          },
           "200": {
             "description": "Successful operation",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Event"
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Event"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UnauthorizedError"
+                },
+                "example": {
+                  "statusCode": 401,
+                  "error": "Unauthorized",
+                  "message": "Not Authenticated"
                 }
               }
             }
@@ -310,6 +324,9 @@
             "description": "Event Not Found",
             "content": {
               "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotFoundError"
+                },
                 "example": {
                   "statusCode": 404,
                   "error": "Not Found",
@@ -322,17 +339,19 @@
             "description": "Internal Server Error",
             "content": {
               "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InternalServerError"
+                },
                 "example": {
-                  "statusCode":500,
+                  "statusCode": 500,
                   "error": "Internal Server Error",
                   "message": "Something went wrong"
                 }
               }
             }
-          }  
+          }
         }
       },
-      
       "delete": {
         "summary": "Delete Events",
         "description": "Delete all events for the authenticated user.",
@@ -358,18 +377,87 @@
             "description": "Unauthorized",
             "content": {
               "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UnauthorizedError"
+                },
                 "example": {
+                  "statusCode":401,
                   "error": "Unauthorized",
                   "message": "Not Authenticated"
                 }
               }
             }
           },
-          "200": {
-            "description": "List of deleteDailyEvents",
+          "400": {
+            "description": "Bad Request",
             "content": {
               "application/json": {
-                "example": { "message": "All events deleted successfully" }
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationError"
+                },
+                "example": {
+                  "statusCode": 400,
+                  "error": "Bad Request",
+                  "message": "Invalid day of the week."
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Event Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotFoundError"
+                },
+                "example": {
+                  "statusCode": 404,
+                  "error": "Not Found",
+                  "message": "No events found for deletion."
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InternalServerError"
+                },
+                "example": {
+                  "statusCode": 500,
+                  "error": "Internal Server Error",
+                  "message": "Something went wrong"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "List of deleted events",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "deletedEvents": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Event"
+                      }
+                    }
+                  }
+                },
+                "example": {
+                  "deletedEvents": [
+                    {
+                      "_id": "string",
+                      "description": "string",
+                      "dayOfWeek": "sunday",
+                      "userId": "string"
+                    }
+                  ]
+                }
               }
             }
           }
@@ -398,23 +486,64 @@
           }
         ],
         "responses": {
+          "200": {
+            "description": "Successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Event"
+                }
+              }
+            }
+          },
           "401": {
             "description": "Unauthorized",
             "content": {
               "application/json": {
                 "example": {
+                  "statusCode":401,
                   "error": "Unauthorized",
                   "message": "Not Authenticated"
                 }
               }
             }
           },
-          "200": {
-            "description": "OK",
+          "404": {
+            "description": "Event Not Found",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Event"
+                  "$ref": "#/components/schemas/NotFoundError"
+                },
+                "example": {
+                  "statusCode": 404,
+                  "error": "Not Found",
+                  "message": "No events found for deletion."
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationError"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InternalServerError"
+                },
+                "example": {
+                  "statusCode": 500,
+                  "error": "Internal Server Error",
+                  "message": "Something went wrong"
                 }
               }
             }
@@ -446,113 +575,307 @@
             "description": "Unauthorized",
             "content": {
               "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "integer"
+                    },
+                    "error": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                },
                 "example": {
+                  "statusCode": 401,
                   "error": "Unauthorized",
                   "message": "Not Authenticated"
                 }
               }
             }
           },
-          "200": {
-            "description": "OK",
+          "204": {
+            "description": "Event deleted",
             "content": {
               "application/json": {
-                "example": { "message": "Event deleted successfully" }
+                "example": { 
+                  "statusCode": 204,
+                  "message": "Event deleted successfully"
+                }
               }
+            }
+          },
+          "400": {
+            "description": "Invalid ID supplied",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationError"
+                },
+                "example": {
+                  "statusCode": 400,
+                  "error": "Bad Request",
+                  "message": "Invalid Id"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Event Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotFoundError"
+                },
+                "example": {
+                  "statusCode": 404,
+                  "error": "Not Found",
+                  "message": "Not found"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InternalServerError"
+                },
+                "example": {
+                  "statusCode": 500,
+                  "error": "Internal Server Error",
+                  "message": "Something went wrong"
+                }
+              }
+            }
+          }
+        }
+        
+      }
+    }
+  },
+    "components": {
+      "securitySchemes": {
+        "BearerAuth": {
+          "type": "http",
+          "scheme": "bearer",
+          "bearerFormat": "JWT"
+        }
+      },
+      "schemas": {
+        "CreateUser": {
+          "type": "object",
+          "properties": {
+            "firstName": {
+              "type": "string",
+              "example": "Maria",
+              "description": "First name of the user"
+            },
+            "lastName": {
+              "type": "string",
+              "example": "Silva",
+              "description": "Last name of the user"
+            },
+            "birthDate": {
+              "type": "string",
+              "format": "date",
+              "example": "1988-01-11",
+              "description": "Birth date of the user in YYYY-MM-DD format"
+            },
+            "city": {
+              "type": "string",
+              "example": "São Paulo",
+              "description": "City of residence of the user"
+            },
+            "country": {
+              "type": "string",
+              "example": "Brasil",
+              "description": "Country of residence of the user"
+            },
+            "email": {
+              "type": "string",
+              "format": "email",
+              "example": "maria@gmail.com",
+              "description": "Email address of the user"
+            },
+            "password": {
+              "type": "string",
+              "format": "password",
+              "example": "password",
+              "description": "Password for the user account"
+            },
+            "confirmPassword": {
+              "type": "string",
+              "format": "password",
+              "example": "password",
+              "description": "Confirmation of the password for the user account"
+            }
+          },
+          "required": ["firstName", "lastName", "birthDate", "email", "password", "confirmPassword"],
+          "description": "A schema for user creation request data"
+        },
+        "LoginUserRequest": {
+          "type": "object",
+          "required": ["email", "password"],
+          "properties": {
+            "email": {
+              "type": "string",
+              "format": "email",
+              "description": "The user's email address for login"
+            },
+            "password": {
+              "type": "string",
+              "format": "password",
+              "description": "The user's password for login"
+            }
+          }
+        },
+        "LoginUserResponse": {
+          "type": "object",
+          "properties": {
+            "token": {
+              "type": "string",
+              "description": "JWT token for authentication"
+            },
+            "firstName": {
+              "type": "string",
+              "description": "The first name of the user"
+            },
+            "lastName": {
+              "type": "string",
+              "description": "The last name of the user"
+            },
+            "email": {
+              "type": "string",
+              "format": "email",
+              "description": "The email of the user"
+            }
+          }
+        },
+        "ValidationError": {
+          "type": "object",
+          "properties": {
+            "type": {
+              "type": "string",
+              "example": "Validation Error"
+            },
+            "errors": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "resource": {
+                    "type": "string",
+                    "description": "The field associated with the validation error"
+                  },
+                  "message": {
+                    "type": "string",
+                    "description": "The message describing the validation error"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "CreateEvent": {
+          "type": "object",
+          "properties": {
+            "description": {
+              "type": "string",
+              "description": "Description of the event"
+            },
+            "dayOfWeek": {
+              "type": "string",
+              "enum": ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"],
+              "description": "Day of the week for the event"
+            },
+            "userId": {
+              "type": "string",
+              "description": "ID of the user associated with the event"
+            }
+          },
+          "required": ["description", "dayOfWeek", "userId"]
+        },
+        "Event": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string",
+              "description": "The unique identifier for the event"
+            },
+            "description": {
+              "type": "string",
+              "description": "Description of the event"
+            },
+            "dayOfWeek": {
+              "type": "string",
+              "description": "Day of the week when the event occurs"
+            },
+            "userId": {
+              "type": "string",
+              "description": "The ID of the user who created the event"
+            }
+          }
+        },
+        "UnauthorizedError": {
+          "type": "object",
+          "properties": {
+            "statusCode": {
+              "type": "integer",
+              "format": "int32",
+              "example": 401
+            },
+            "error": {
+              "type": "string",
+              "example": "Unauthorized"
+            },
+            "message": {
+              "type": "string",
+              "example": "Not authenticated"
+            }
+          }
+        },
+        "NotFoundError": {
+          "type": "object",
+          "properties": {
+            "statusCode": {
+              "type": "integer",
+              "format": "int32",
+              "example": 404
+            },
+            "error": {
+              "type": "string",
+              "example": "Not Found"
+            },
+            "message": {
+              "type": "string",
+              "example": "No events found"
+            }
+          }
+        },
+        "InternalServerError": {
+          "type": "object",
+          "properties": {
+            "statusCode": {
+              "type": "integer",
+              "format": "int32",
+              "example": 500
+            },
+            "error": {
+              "type": "string",
+              "example": "Internal Server Error"
+            },
+            "message": {
+              "type": "string",
+              "example": "Something went wrong"
             }
           }
         }
       }
     }
-  },
-  "components": {
-    "securitySchemes": {
-      "BearerAuth": {
-        "type": "http",
-        "scheme": "bearer",
-        "bearerFormat": "JWT"
-      }
-    },
-    "schemas": {
-      "CreateUser": {
-        "type": "object",
-        "properties": {
-          "firstName": {
-            "type": "string"
-          },
-          "lastName": {
-            "type":"string"
-          },
-          "birthDate": {
-            "type": "string",
-            "format":"date"
-          },
-          "city": {
-            "type":"string"
-          },
-          "country": {
-            "type":"string"
-          },
-          "email": {
-            "type":"string"
-          },
-          "password": {
-            "type":"string"
-          },
-          "confirmPassword":{
-            "type":"string"
-          }
-        }
-      },
-      "LoginUser": {
-        "type": "object",
-        "properties": {
-          "email": {
-            "type": "string"
-          },
-          "password": {
-            "type": "string"
-          }
-        }
-      },
-      "CreateEvent": {
-        "type": "object",
-        "properties": {
-          "description": {
-            "type": "string",
-            "description": "Description of the event"
-          },
-          "dayOfWeek": {
-            "type": "string",
-            "enum": ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"],
-            "description": "Day of the week for the event"
-          },
-          "userId": {
-            "type": "string",
-            "description": "ID of the user associated with the event"
-          }
-        },
-        "required": ["description", "dayOfWeek", "userId"]
-      },
-      "Event": {
-        "type": "object",
-        "properties": {
-          "description": {
-            "type": "string",
-            "description": "Description of the event"
-          },
-          "dayOfWeek": {
-            "type": "string",
-            "enum": ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"],
-            "description": "Day of the week for the event"
-          },
-          "userId": {
-            "type": "string",
-            "description": "ID of the user associated with the event"
-          }
-        },
-        "required": ["description", "dayOfWeek", "userId"]
-      }
-    }
   }
-}
+  

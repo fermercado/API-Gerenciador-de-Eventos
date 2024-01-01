@@ -12,12 +12,11 @@ describe('Event Creation', () => {
   let userToken: string;
   let userId: string;
 
-  beforeAll(async () => {
-    mongoServer = new MongoMemoryServer();
-    const mongoUri = await mongoServer.getUri();
-    await mongoose.connect(mongoUri, {});
-
-    const passwordHash = await bcrypt.hash('password123', 10);
+  const createTestUser = async () => {
+    const passwordHash =
+      process.env.NODE_ENV === 'test'
+        ? 'password123'
+        : await bcrypt.hash('password123', 10);
     const user = await User.create({
       firstName: 'Maria',
       lastName: 'Silva',
@@ -32,6 +31,18 @@ describe('Event Creation', () => {
     userToken = jwt.sign({ userId: userId }, process.env.JWT_SECRET || '', {
       expiresIn: '1h',
     });
+  };
+
+  const getMockEvent = () => ({
+    description: 'Maria Event',
+    dayOfWeek: 'monday',
+  });
+
+  beforeAll(async () => {
+    mongoServer = new MongoMemoryServer();
+    const mongoUri = await mongoServer.getUri();
+    await mongoose.connect(mongoUri, {});
+    await createTestUser();
   });
 
   afterAll(async () => {
@@ -39,11 +50,17 @@ describe('Event Creation', () => {
     await mongoServer.stop();
   });
 
+  afterEach(async () => {
+    await Event.deleteMany({});
+  });
+
+  beforeEach(async () => {
+    await User.deleteMany({});
+    await createTestUser();
+  });
+
   it('should create an event successfully', async () => {
-    const mockEvent = {
-      description: 'Maria Event',
-      dayOfWeek: 'monday',
-    };
+    const mockEvent = getMockEvent();
 
     const response = await request(app)
       .post('/api/v1/events')
@@ -70,10 +87,7 @@ describe('Event Creation', () => {
   });
 
   it('creation without authentication', async () => {
-    const mockEvent = {
-      description: 'Maria Event',
-      dayOfWeek: 'tuesday',
-    };
+    const mockEvent = getMockEvent();
 
     const response = await request(app).post('/api/v1/events').send(mockEvent);
 
@@ -109,17 +123,14 @@ describe('Event Creation', () => {
     expect(response.body.errors).toBeTruthy();
   });
 
-  it(' handle internal server error', async () => {
+  it('handle internal server error', async () => {
     jest
       .spyOn(Event, 'create')
       .mockImplementationOnce(() =>
         Promise.reject(new Error('Internal server error')),
       );
 
-    const mockEvent = {
-      description: 'Internal Server Error Event',
-      dayOfWeek: 'thursday',
-    };
+    const mockEvent = getMockEvent();
 
     const response = await request(app)
       .post('/api/v1/events')

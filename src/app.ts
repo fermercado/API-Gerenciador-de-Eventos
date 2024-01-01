@@ -6,7 +6,11 @@ import userRoutes from './routes/UsersRoutes';
 import swaggerUi from 'swagger-ui-express';
 import swaggerOptions from './swaggerOptions.json';
 
-dotenv.config();
+if (process.env.NODE_ENV === 'test') {
+  dotenv.config({ path: '.env.test' });
+} else {
+  dotenv.config();
+}
 
 const app: Application = express();
 const port = process.env.PORT || 3000;

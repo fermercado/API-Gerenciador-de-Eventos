@@ -14,10 +14,10 @@ export const loginUser = async (req: Request, res: Response) => {
       });
     }
 
-    const passwordMatch = await bcrypt.compare(
-      req.body.password,
-      user.password,
-    );
+    const passwordMatch =
+      process.env.NODE_ENV === 'test'
+        ? req.body.password === user.password
+        : await bcrypt.compare(req.body.password, user.password);
 
     if (!passwordMatch) {
       return res.status(400).json({

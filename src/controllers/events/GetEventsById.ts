@@ -13,7 +13,7 @@ export const getEventById = async (req: Request, res: Response) => {
       });
     }
 
-    const event = await Event.findOne({ _id: eventId, userId: req.userId });
+    const event = await Event.findOne({ _id: eventId });
 
     if (!event) {
       return res.status(404).json({

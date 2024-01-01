@@ -30,7 +30,7 @@ describe('User Login', () => {
     await mongoServer.stop();
   });
 
-  it('should successfully log in a user', async () => {
+  it('successfully log in a user', async () => {
     const response = await request(app)
       .post('/api/v1/users/sign-in')
       .set('Content-Type', 'application/json')
@@ -46,7 +46,7 @@ describe('User Login', () => {
     expect(response.body).toHaveProperty('email', 'maria@gmail.com');
   });
 
-  it('should return error for invalid email', async () => {
+  it('return error for invalid email', async () => {
     const response = await request(app)
       .post('/api/v1/users/sign-in')
       .set('Content-Type', 'application/json')
@@ -59,7 +59,7 @@ describe('User Login', () => {
     expect(response.body.errors).toBeTruthy();
   });
 
-  it('should return error for invalid password', async () => {
+  it('return error for invalid password', async () => {
     const response = await request(app)
       .post('/api/v1/users/sign-in')
       .set('Content-Type', 'application/json')

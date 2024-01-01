@@ -231,8 +231,11 @@
         "description": " Successfull operation",
         "content": {
           "application/json": {
-            "schema": {
-              "$ref": "#/components/schemas/DeletedEventsResponse"
+            "example":{
+              "_id": "string",
+              "descripiton": "string",
+              "dayOfWeek": "sunday",
+              "userId": "string"
             }
           }
         }

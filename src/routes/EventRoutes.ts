@@ -11,14 +11,14 @@ const router = express.Router();
 
 router.use(authenticateUser);
 
-router.post('/', authenticateUser, createEvent);
+router.post('/', createEvent);
 
-router.get('/', authenticateUser, getEvents);
+router.get('/', getEvents);
 
-router.get('/:id', authenticateUser, getEventById);
+router.get('/:id', getEventById);
 
-router.delete('/:id', authenticateUser, deleteEventById);
+router.delete('/:id', deleteEventById);
 
-router.delete('/', authenticateUser, deleteEvents);
+router.delete('/', deleteEvents);
 
 export default router;

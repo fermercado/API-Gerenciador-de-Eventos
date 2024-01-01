@@ -44,8 +44,33 @@ describe('Delete Events', () => {
     await mongoose.connection.close();
     await mongoServer.stop();
   });
+  it('401 Unauthorized if the user is not authenticated', async () => {
+    const response = await request(app)
+      .delete('/api/v1/events')
+      .query({ dayOfWeek: 'monday' });
 
-  it('should delete and return events by day', async () => {
+    expect(response.status).toBe(401);
+    expect(response.body).toEqual({
+      error: 'Unauthorized',
+      message: 'Not Authenticated',
+    });
+  });
+
+  it(' 404 Not Found if no events are found for deletion', async () => {
+    const response = await request(app)
+      .delete('/api/v1/events')
+      .query({ dayOfWeek: 'sunday' })
+      .set('Authorization', `Bearer ${userToken}`);
+
+    expect(response.status).toBe(404);
+    expect(response.body).toEqual({
+      statusCode: 404,
+      error: 'Not Found',
+      message: 'No events found for deletion.',
+    });
+  });
+
+  it('Delete and return events by day', async () => {
     const response = await request(app)
       .delete('/api/v1/events')
       .query({ dayOfWeek: 'monday' })
@@ -63,7 +88,7 @@ describe('Delete Events', () => {
   it('deletes and returns events', async () => {
     const response = await request(app)
       .delete('/api/v1/events')
-      .query({ dayOfWeek: 'tuesday' }) // Modificado para 'tuesday'
+      .query({ dayOfWeek: 'tuesday' })
       .set('Authorization', `Bearer ${userToken}`);
 
     expect(response.status).toBe(200);

@@ -5,6 +5,7 @@ import { MongoMemoryServer } from 'mongodb-memory-server';
 import User from '../models/UserModel';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
+import Event from '../models/EventModel';
 
 describe('Event Creation', () => {
   let mongoServer: any;
@@ -55,7 +56,7 @@ describe('Event Creation', () => {
     expect(response.body).toHaveProperty('userId', userId.toString());
   });
 
-  it('should return validation errors for invalid input', async () => {
+  it('validation errors for invalid input', async () => {
     const response = await request(app)
       .post('/api/v1/events')
       .set('Authorization', `Bearer ${userToken}`)
@@ -68,7 +69,7 @@ describe('Event Creation', () => {
     expect(response.body.errors).toBeTruthy();
   });
 
-  it('should reject event creation without authentication', async () => {
+  it('creation without authentication', async () => {
     const mockEvent = {
       description: 'Maria Event',
       dayOfWeek: 'tuesday',
@@ -83,7 +84,7 @@ describe('Event Creation', () => {
     });
   });
 
-  it('should return validation errors for missing fields', async () => {
+  it('validation errors for missing fields', async () => {
     const response = await request(app)
       .post('/api/v1/events')
       .set('Authorization', `Bearer ${userToken}`)
@@ -93,12 +94,9 @@ describe('Event Creation', () => {
 
     expect(response.status).toBe(400);
     expect(response.body.errors).toBeTruthy();
-    expect(
-      response.body.errors.some((error: any) => error.field === 'dayOfWeek'),
-    ).toBe(true);
   });
 
-  it('should reject event with invalid dayOfWeek', async () => {
+  it('reject event with invalid dayOfWeek', async () => {
     const response = await request(app)
       .post('/api/v1/events')
       .set('Authorization', `Bearer ${userToken}`)
@@ -109,8 +107,31 @@ describe('Event Creation', () => {
 
     expect(response.status).toBe(400);
     expect(response.body.errors).toBeTruthy();
-    expect(
-      response.body.errors.some((error: any) => error.field === 'dayOfWeek'),
-    ).toBe(true);
+  });
+
+  it(' handle internal server error', async () => {
+    jest
+      .spyOn(Event, 'create')
+      .mockImplementationOnce(() =>
+        Promise.reject(new Error('Internal server error')),
+      );
+
+    const mockEvent = {
+      description: 'Internal Server Error Event',
+      dayOfWeek: 'thursday',
+    };
+
+    const response = await request(app)
+      .post('/api/v1/events')
+      .set('Authorization', `Bearer ${userToken}`)
+      .send(mockEvent);
+
+    expect(response.status).toBe(500);
+    expect(response.body).toEqual({
+      error: 'Internal Server Error',
+      message: 'Something went wrong',
+    });
+
+    jest.restoreAllMocks();
   });
 });

@@ -18,7 +18,7 @@ describe('User Creation', () => {
     await mongoServer.stop();
   });
 
-  it('should create a user successfully', async () => {
+  it('create a user successfully', async () => {
     const mockUser = {
       firstName: 'Maria',
       lastName: 'Silva',
@@ -45,7 +45,7 @@ describe('User Creation', () => {
     expect(createdUser?.lastName).toBe('Silva');
   });
 
-  it('should return validation errors for invalid input', async () => {
+  it('validation errors for invalid input', async () => {
     const response = await request(app)
       .post('/api/v1/users/sign-up')
       .set('Content-Type', 'application/json')
@@ -64,7 +64,7 @@ describe('User Creation', () => {
     expect(response.body.errors).toBeTruthy();
   });
 
-  it('should return validation errors for missing first name', async () => {
+  it('validation errors for missing first name', async () => {
     const response = await request(app)
       .post('/api/v1/users/sign-up')
       .set('Content-Type', 'application/json')
@@ -85,7 +85,7 @@ describe('User Creation', () => {
     ).toBe(true);
   });
 
-  it('should return validation errors for non-matching passwords', async () => {
+  it('validation errors for non-matching passwords', async () => {
     const response = await request(app)
       .post('/api/v1/users/sign-up')
       .set('Content-Type', 'application/json')
@@ -108,7 +108,7 @@ describe('User Creation', () => {
       ),
     ).toBe(true);
   });
-  it('should return validation error for invalid email format', async () => {
+  it('validation error for invalid email format', async () => {
     const mockUserWithInvalidEmail = {
       firstName: 'Maria',
       lastName: 'Silva',
@@ -137,7 +137,7 @@ describe('User Creation', () => {
     ).toBe(true);
   });
 
-  it('should reject duplicate email', async () => {
+  it('reject duplicate email', async () => {
     await request(app)
       .post('/api/v1/users/sign-up')
       .set('Content-Type', 'application/json')

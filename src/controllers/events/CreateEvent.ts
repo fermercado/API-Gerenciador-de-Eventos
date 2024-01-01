@@ -33,8 +33,6 @@ export const createEvent = async (req: Request, res: Response) => {
       }));
       return res.status(400).json({ errors: validationErrors });
     }
-
-    console.error(error);
     res.status(500).json({
       error: 'Internal Server Error',
       message: 'Something went wrong',

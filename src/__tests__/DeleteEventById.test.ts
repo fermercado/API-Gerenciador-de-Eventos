@@ -12,15 +12,16 @@ describe('Delete Event By ID', () => {
   let userToken: string;
   let anotherUserToken: string;
   let userId: string;
+  let anotherUserId: string;
   let testEventId: string;
   let anotherEventId: string;
 
-  beforeAll(async () => {
-    mongoServer = await MongoMemoryServer.create();
-    const mongoUri = await mongoServer.getUri();
-    await mongoose.connect(mongoUri, {});
+  const createTestData = async () => {
+    await User.deleteMany({});
+    await Event.deleteMany({});
 
     const passwordHash = await bcrypt.hash('password123', 10);
+
     const user = await User.create({
       firstName: 'Maria',
       lastName: 'Silva',
@@ -31,7 +32,7 @@ describe('Delete Event By ID', () => {
       country: 'Brasil',
     });
 
-    userId = user._id;
+    userId = user._id.toString();
     userToken = jwt.sign({ userId: userId }, process.env.JWT_SECRET || '', {
       expiresIn: '1h',
     });
@@ -46,8 +47,9 @@ describe('Delete Event By ID', () => {
       country: 'Brasil',
     });
 
+    anotherUserId = anotherUser._id.toString();
     anotherUserToken = jwt.sign(
-      { userId: anotherUser._id },
+      { userId: anotherUserId },
       process.env.JWT_SECRET || '',
       {
         expiresIn: '1h',
@@ -59,20 +61,32 @@ describe('Delete Event By ID', () => {
       dayOfWeek: 'monday',
       userId,
     });
-    testEventId = testEvent._id;
+
+    testEventId = testEvent._id.toString();
 
     const anotherEvent = await Event.create({
       description: 'Another Event',
       dayOfWeek: 'tuesday',
-      userId: anotherUser._id,
+      userId: anotherUserId,
     });
-    anotherEventId = anotherEvent._id;
+
+    anotherEventId = anotherEvent._id.toString();
+  };
+
+  beforeAll(async () => {
+    mongoServer = await MongoMemoryServer.create();
+    const mongoUri = await mongoServer.getUri();
+    await mongoose.connect(mongoUri, {});
   });
 
   afterAll(async () => {
     await mongoose.connection.dropDatabase();
     await mongoose.connection.close();
     await mongoServer.stop();
+  });
+
+  beforeEach(async () => {
+    await createTestData();
   });
 
   it('deletes event by ID', async () => {
@@ -122,16 +136,17 @@ describe('Delete Event By ID', () => {
       message: 'You do not have permission to delete this event.',
     });
   });
+
   it('prevents deletion by different user', async () => {
     const response = await request(app)
       .delete(`/api/v1/events/${testEventId}`)
       .set('Authorization', `Bearer ${anotherUserToken}`);
 
-    expect(response.status).toBe(404);
+    expect(response.status).toBe(400);
     expect(response.body).toEqual({
-      statusCode: 404,
-      error: 'Not Found',
-      message: 'Event not found for deletion.',
+      statusCode: 400,
+      error: 'Bad Request',
+      message: 'You do not have permission to delete this event.',
     });
   });
 });

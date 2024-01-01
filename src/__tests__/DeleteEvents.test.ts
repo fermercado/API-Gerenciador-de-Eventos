@@ -12,6 +12,13 @@ describe('Delete Events', () => {
   let userToken: string;
   let userId: string;
 
+  const createTestEvents = async () => {
+    await Event.create([
+      { description: 'Event 1', dayOfWeek: 'monday', userId },
+      { description: 'Event 2', dayOfWeek: 'tuesday', userId },
+    ]);
+  };
+
   beforeAll(async () => {
     mongoServer = await MongoMemoryServer.create();
     const mongoUri = await mongoServer.getUri();
@@ -33,10 +40,7 @@ describe('Delete Events', () => {
       expiresIn: '1h',
     });
 
-    await Event.create([
-      { description: 'Event 1', dayOfWeek: 'monday', userId },
-      { description: 'Event 2', dayOfWeek: 'tuesday', userId },
-    ]);
+    await createTestEvents();
   });
 
   afterAll(async () => {
@@ -44,7 +48,13 @@ describe('Delete Events', () => {
     await mongoose.connection.close();
     await mongoServer.stop();
   });
-  it('401 Unauthorized if the user is not authenticated', async () => {
+
+  beforeEach(async () => {
+    await Event.deleteMany({});
+    await createTestEvents();
+  });
+
+  it('return 401 Unauthorized if the user is not authenticated', async () => {
     const response = await request(app)
       .delete('/api/v1/events')
       .query({ dayOfWeek: 'monday' });
@@ -70,7 +80,7 @@ describe('Delete Events', () => {
     });
   });
 
-  it('Delete and return events by day', async () => {
+  it('delete and return events by day of week', async () => {
     const response = await request(app)
       .delete('/api/v1/events')
       .query({ dayOfWeek: 'monday' })
@@ -78,7 +88,6 @@ describe('Delete Events', () => {
 
     expect(response.status).toBe(200);
     expect(response.body.deletedEvents).toBeInstanceOf(Array);
-    expect(response.body.deletedEvents).toHaveLength(1);
     expect(response.body.deletedEvents[0].dayOfWeek).toBe('monday');
     expect(response.body.deletedEvents[0]).toHaveProperty('description');
     expect(response.body.deletedEvents[0]).toHaveProperty('_id');

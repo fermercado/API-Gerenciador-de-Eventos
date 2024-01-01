@@ -17,21 +17,24 @@ export const getEvents = async (req: Request, res: Response) => {
       });
     }
 
-    const { description, dayOfWeek, onlyMyEvents } = req.query;
-    const query: Query = {};
+    const {
+      description,
+      dayOfWeek,
+      onlyMyEvents,
+      page = '1',
+      limit = '10',
+    } = req.query;
+    const query: Query = {
+      ...(onlyMyEvents === 'true' && { userId: req.userId }),
+      ...(description && {
+        description: { $regex: description as string, $options: 'i' },
+      }),
+      ...(dayOfWeek && { dayOfWeek: dayOfWeek as string }),
+    };
 
-    if (onlyMyEvents === 'true') {
-      query.userId = req.userId;
-    }
-
-    if (description) {
-      query.description = { $regex: description as string, $options: 'i' };
-    }
-    if (dayOfWeek) {
-      query.dayOfWeek = dayOfWeek as string;
-    }
-
-    const events = await Event.find(query);
+    const events = await Event.find(query)
+      .skip((parseInt(page as string) - 1) * parseInt(limit as string))
+      .limit(parseInt(limit as string));
 
     if (events.length === 0) {
       return res.status(404).json({

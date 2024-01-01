@@ -1,33 +1,43 @@
 import request from 'supertest';
 import app from '../app';
 import mongoose from 'mongoose';
+import bcrypt from 'bcrypt';
 import { MongoMemoryServer } from 'mongodb-memory-server';
 import User from '../models/UserModel';
-import bcrypt from 'bcrypt';
 
 describe('User Login', () => {
   let mongoServer: any;
+
+  const createUserForTest = async () => {
+    const password =
+      process.env.NODE_ENV === 'test'
+        ? 'password123'
+        : await bcrypt.hash('password123', 10);
+    await User.create({
+      firstName: 'Maria',
+      lastName: 'Silva',
+      email: 'maria@gmail.com',
+      password: password,
+      birthDate: '1988-01-11',
+      city: 'São Paulo',
+      country: 'Brasil',
+    });
+  };
 
   beforeAll(async () => {
     mongoServer = new MongoMemoryServer();
     const mongoUri = await mongoServer.getUri();
     await mongoose.connect(mongoUri, {});
-
-    const passwordHash = await bcrypt.hash('password123', 10);
-    await User.create({
-      firstName: 'Maria',
-      lastName: 'Silva',
-      email: 'maria@gmail.com',
-      password: passwordHash,
-      birthDate: '1988-01-11',
-      city: 'São Paulo',
-      country: 'Brasil',
-    });
+    await createUserForTest();
   });
 
   afterAll(async () => {
     await mongoose.disconnect();
     await mongoServer.stop();
+  });
+
+  afterEach(async () => {
+    await User.deleteMany({});
   });
 
   it('successfully log in a user', async () => {

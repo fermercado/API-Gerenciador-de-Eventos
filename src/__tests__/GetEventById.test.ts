@@ -8,9 +8,8 @@ import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 
 describe('Get Event By ID', () => {
-  let mongoServer: any;
+  let mongoServer: MongoMemoryServer;
   let userToken: string;
-  let userId: string;
   let testEventId: string;
 
   beforeAll(async () => {
@@ -18,28 +17,9 @@ describe('Get Event By ID', () => {
     const mongoUri = await mongoServer.getUri();
     await mongoose.connect(mongoUri, {});
 
-    const passwordHash = await bcrypt.hash('password123', 10);
-    const user = await User.create({
-      firstName: 'Maria',
-      lastName: 'Silva',
-      email: 'maria@gmail.com',
-      password: passwordHash,
-      birthDate: '1988-01-11',
-      city: 'São Paulo',
-      country: 'Brasil',
-    });
-
-    userId = user._id;
-    userToken = jwt.sign({ userId: userId }, process.env.JWT_SECRET || '', {
-      expiresIn: '1h',
-    });
-
-    const testEvent = await Event.create({
-      description: 'Maria Event',
-      dayOfWeek: 'monday',
-      userId,
-    });
-    testEventId = testEvent._id;
+    const user = await createUser();
+    userToken = generateUserToken(user._id);
+    testEventId = await createTestEvent(user._id);
   });
 
   afterAll(async () => {
@@ -59,20 +39,20 @@ describe('Get Event By ID', () => {
   it('handles non-existent ID', async () => {
     const nonExistentId = new mongoose.Types.ObjectId();
     const response = await request(app)
-      .delete(`/api/v1/events/${nonExistentId}`)
+      .get(`/api/v1/events/${nonExistentId}`)
       .set('Authorization', `Bearer ${userToken}`);
 
     expect(response.status).toBe(404);
     expect(response.body).toEqual({
       statusCode: 404,
       error: 'Not Found',
-      message: 'Event not found for deletion.',
+      message: 'Event not found.',
     });
   });
 
   it('handles server error', async () => {
     jest.spyOn(Event, 'findOne').mockImplementationOnce(() => {
-      throw new Error();
+      throw new Error('Test Error');
     });
 
     const response = await request(app)
@@ -82,4 +62,32 @@ describe('Get Event By ID', () => {
     expect(response.status).toBe(500);
     expect(response.body).toHaveProperty('error', 'Internal Server Error');
   });
+
+  async function createUser() {
+    const passwordHash = await bcrypt.hash('password123', 10);
+    return await User.create({
+      firstName: 'Maria',
+      lastName: 'Silva',
+      email: 'maria@gmail.com',
+      password: passwordHash,
+      birthDate: '1988-01-11',
+      city: 'São Paulo',
+      country: 'Brasil',
+    });
+  }
+
+  function generateUserToken(userId: string) {
+    return jwt.sign({ userId }, process.env.JWT_SECRET || '', {
+      expiresIn: '1h',
+    });
+  }
+
+  async function createTestEvent(userId: string) {
+    const testEvent = await Event.create({
+      description: 'Test Event',
+      dayOfWeek: 'monday',
+      userId,
+    });
+    return testEvent._id;
+  }
 });

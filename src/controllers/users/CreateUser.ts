@@ -7,7 +7,8 @@ export const createUser = async (req: Request, res: Response) => {
   try {
     await userValidationSchema.validate(req.body, { abortEarly: false });
 
-    const hashedPassword = await bcrypt.hash(req.body.password, 10);
+    const saltRounds = process.env.NODE_ENV === 'test' ? 1 : 10;
+    const hashedPassword = await bcrypt.hash(req.body.password, saltRounds);
 
     const user = await User.create({
       firstName: req.body.firstName,

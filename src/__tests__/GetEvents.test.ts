@@ -18,10 +18,9 @@ describe('Get Events', () => {
   let userToken: string;
   let userId: string;
 
-  beforeAll(async () => {
-    mongoServer = new MongoMemoryServer();
-    const mongoUri = await mongoServer.getUri();
-    await mongoose.connect(mongoUri, {});
+  const createTestUserAndEvent = async () => {
+    await User.deleteMany({});
+    await Event.deleteMany({});
 
     const passwordHash = await bcrypt.hash('password123', 10);
     const user = await User.create({
@@ -39,9 +38,18 @@ describe('Get Events', () => {
       expiresIn: '1h',
     });
 
-    await Event.create([
-      { description: 'Maria Event', dayOfWeek: 'monday', userId: userId },
-    ]);
+    await Event.create({
+      description: 'Maria Event',
+      dayOfWeek: 'monday',
+      userId: userId,
+    });
+  };
+
+  beforeAll(async () => {
+    mongoServer = new MongoMemoryServer();
+    const mongoUri = await mongoServer.getUri();
+    await mongoose.connect(mongoUri, {});
+    await createTestUserAndEvent();
   });
 
   afterAll(async () => {
@@ -49,6 +57,11 @@ describe('Get Events', () => {
     await mongoose.connection.close();
     await mongoServer.stop();
   });
+
+  afterEach(async () => {
+    await createTestUserAndEvent();
+  });
+
   it('only user events', async () => {
     const response = await request(app)
       .get('/api/v1/events')
@@ -57,7 +70,6 @@ describe('Get Events', () => {
 
     expect(response.status).toBe(200);
     expect(response.body).toBeInstanceOf(Array);
-
     expect(
       response.body.every(
         (event: Event) => event.userId.toString() === userId.toString(),

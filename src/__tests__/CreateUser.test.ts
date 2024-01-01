@@ -17,6 +17,9 @@ describe('User Creation', () => {
     await mongoose.disconnect();
     await mongoServer.stop();
   });
+  afterEach(async () => {
+    await User.deleteMany({});
+  });
 
   it('create a user successfully', async () => {
     const mockUser = {

@@ -292,8 +292,29 @@
               "type": "boolean",
               "default": false
             }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "description": "Specify the page of results to retrieve",
+            "schema": {
+              "type": "integer",
+              "default": 1,
+              "minimum": 1
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Specify the number of events to return per page",
+            "schema": {
+              "type": "integer",
+              "default": 10,
+              "minimum": 1
+            }
           }
         ],
+  
         "responses": {
           "200": {
             "description": "Successful operation",

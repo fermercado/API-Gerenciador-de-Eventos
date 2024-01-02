@@ -13,10 +13,7 @@ describe('Event Creation', () => {
   let userId: string;
 
   const createTestUser = async () => {
-    const passwordHash =
-      process.env.NODE_ENV === 'test'
-        ? 'password123'
-        : await bcrypt.hash('password123', 10);
+    const passwordHash = await bcrypt.hash('password123', 10);
     const user = await User.create({
       firstName: 'Maria',
       lastName: 'Silva',
@@ -57,6 +54,72 @@ describe('Event Creation', () => {
   beforeEach(async () => {
     await User.deleteMany({});
     await createTestUser();
+  });
+
+  it('should create an event successfully', async () => {
+    const mockEvent = getMockEvent();
+
+    const response = await request(app)
+      .post('/api/v1/events')
+      .set('Authorization', `Bearer ${userToken}`)
+      .send(mockEvent);
+
+    expect(response.status).toBe(201);
+    expect(response.body).toHaveProperty('description', 'Maria Event');
+    expect(response.body).toHaveProperty('dayOfWeek', 'monday');
+    expect(response.body).toHaveProperty('userId', userId.toString());
+  });
+
+  it('should fail validation for empty description', async () => {
+    const response = await request(app)
+      .post('/api/v1/events')
+      .set('Authorization', `Bearer ${userToken}`)
+      .send({ description: '', dayOfWeek: 'monday' });
+
+    expect(response.status).toBe(400);
+    expect(response.body.errors[0].field).toBe('description');
+    expect(response.body.errors[0].message).toBe('Description is required.');
+  });
+
+  it('should fail validation for invalid dayOfWeek', async () => {
+    const response = await request(app)
+      .post('/api/v1/events')
+      .set('Authorization', `Bearer ${userToken}`)
+      .send({ description: 'Maria Event', dayOfWeek: 'invalid-day' });
+
+    expect(response.status).toBe(400);
+    expect(response.body.errors[0].field).toBe('dayOfWeek');
+    expect(response.body.errors[0].message).toBe('Invalid day of the week');
+  });
+
+  it('creation without authentication', async () => {
+    const mockEvent = getMockEvent();
+
+    const response = await request(app).post('/api/v1/events').send(mockEvent);
+
+    expect(response.status).toBe(401);
+    expect(response.body).toEqual({
+      error: 'Unauthorized',
+      message: 'Not Authenticated',
+    });
+  });
+
+  it('should handle database errors during event creation', async () => {
+    jest.spyOn(Event, 'create').mockRejectedValueOnce(new Error('DB error'));
+
+    const mockEvent = getMockEvent();
+    const response = await request(app)
+      .post('/api/v1/events')
+      .set('Authorization', `Bearer ${userToken}`)
+      .send(mockEvent);
+
+    expect(response.status).toBe(500);
+    expect(response.body).toEqual({
+      error: 'Internal Server Error',
+      message: 'Something went wrong',
+    });
+
+    jest.restoreAllMocks();
   });
 
   it('should create an event successfully', async () => {

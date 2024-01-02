@@ -2,7 +2,7 @@ import request from 'supertest';
 import app from '../app';
 import mongoose from 'mongoose';
 import sinon from 'sinon';
-import bcrypt from 'bcrypt';
+import * as bcrypt from 'bcryptjs';
 import { MongoMemoryServer } from 'mongodb-memory-server';
 import User from '../models/UserModel';
 

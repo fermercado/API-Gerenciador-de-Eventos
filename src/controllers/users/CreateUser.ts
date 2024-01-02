@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import bcrypt from 'bcrypt';
+import * as bcrypt from 'bcryptjs';
 import User from '../../models/UserModel';
 import { userValidationSchema } from '../../validations/validations';
 

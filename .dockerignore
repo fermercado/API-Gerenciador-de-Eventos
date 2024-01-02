@@ -1,10 +1,11 @@
 node_modules/
-*.js
-*.map
-*.tsbuildinfo
+.git/
 .env
 .vscode/
+build/
 coverage/
+dist/
+tests/
 jest.setup.js
 testResults.json
 jest.cache/

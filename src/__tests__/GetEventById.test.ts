@@ -90,4 +90,18 @@ describe('Get Event By ID', () => {
     });
     return testEvent._id;
   }
+
+  it('handles invalid event ID format', async () => {
+    const invalidId = '123';
+    const response = await request(app)
+      .get(`/api/v1/events/${invalidId}`)
+      .set('Authorization', `Bearer ${userToken}`);
+
+    expect(response.status).toBe(400);
+    expect(response.body).toEqual({
+      statusCode: 400,
+      error: 'Bad Request',
+      message: 'Invalid event ID format.',
+    });
+  });
 });

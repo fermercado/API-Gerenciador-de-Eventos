@@ -90,6 +90,7 @@ describe('Get Events', () => {
     const response = await request(app)
       .get('/api/v1/events')
       .set('Authorization', 'Bearer invalidToken');
+
     expect(response.status).toBe(401);
     expect(response.body).toEqual({
       error: 'Unauthorized',
@@ -159,5 +160,23 @@ describe('Get Events', () => {
       error: 'Not Found',
       message: 'No events found',
     });
+  });
+  it('handles server error during event retrieval', async () => {
+    jest.spyOn(Event, 'find').mockImplementationOnce(() => {
+      throw new Error('Test Error');
+    });
+
+    const response = await request(app)
+      .get('/api/v1/events')
+      .set('Authorization', `Bearer ${userToken}`);
+
+    expect(response.status).toBe(500);
+    expect(response.body).toEqual({
+      statusCode: 500,
+      error: 'Internal Server Error',
+      message: 'Something went wrong',
+    });
+
+    jest.restoreAllMocks();
   });
 });

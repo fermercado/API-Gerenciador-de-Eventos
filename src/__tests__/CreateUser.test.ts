@@ -3,6 +3,7 @@ import app from '../app';
 import mongoose from 'mongoose';
 import { MongoMemoryServer } from 'mongodb-memory-server';
 import User from '../models/UserModel';
+import sinon from 'sinon';
 
 describe('User Creation', () => {
   let mongoServer: any;
@@ -19,6 +20,7 @@ describe('User Creation', () => {
   });
   afterEach(async () => {
     await User.deleteMany({});
+    sinon.restore();
   });
 
   it('create a user successfully', async () => {
@@ -176,5 +178,32 @@ describe('User Creation', () => {
         (error: any) => error.message === 'This email already exists',
       ),
     ).toBe(true);
+  });
+  it('handle server errors during user creation', async () => {
+    const createUserSpy = sinon.stub(User, 'create');
+    createUserSpy.throws(new Error('Internal server error'));
+
+    const mockUser = {
+      firstName: 'Maria',
+      lastName: 'Silva',
+      birthDate: '1988-01-11',
+      city: 'São Paulo',
+      country: 'Brasil',
+      email: 'maria@example.com',
+      password: 'password123',
+      confirmPassword: 'password123',
+    };
+
+    const response = await request(app)
+      .post('/api/v1/users/sign-up')
+      .send(mockUser);
+
+    expect(response.status).toBe(500);
+    expect(response.body).toEqual({
+      error: 'Internal Server Error',
+      message: 'Something went wrong',
+    });
+
+    createUserSpy.restore();
   });
 });

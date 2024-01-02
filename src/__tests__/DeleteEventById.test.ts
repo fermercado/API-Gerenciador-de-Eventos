@@ -149,4 +149,22 @@ describe('Delete Event By ID', () => {
       message: 'You do not have permission to delete this event.',
     });
   });
+  it('return 500 if a server error occurs during event deletion', async () => {
+    const mockDelete = jest
+      .spyOn(Event, 'deleteOne')
+      .mockRejectedValue(new Error('Internal server error'));
+
+    const response = await request(app)
+      .delete('/api/v1/events/some-event-id')
+      .set('Authorization', `Bearer ${userToken}`);
+
+    expect(response.status).toBe(500);
+    expect(response.body).toEqual({
+      statusCode: 500,
+      error: 'Internal Server Error',
+      message: 'Something went wrong',
+    });
+
+    mockDelete.mockRestore();
+  });
 });

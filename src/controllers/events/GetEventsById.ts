@@ -1,3 +1,4 @@
+import mongoose from 'mongoose';
 import { Request, Response } from 'express';
 import Event from '../../models/EventModel';
 
@@ -5,11 +6,11 @@ export const getEventById = async (req: Request, res: Response) => {
   try {
     const eventId = req.params.id;
 
-    if (!eventId) {
+    if (!mongoose.Types.ObjectId.isValid(eventId)) {
       return res.status(400).json({
         statusCode: 400,
         error: 'Bad Request',
-        message: 'Event ID is required.',
+        message: 'Invalid event ID format.',
       });
     }
 

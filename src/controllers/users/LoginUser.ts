@@ -37,7 +37,6 @@ export const loginUser = async (req: Request, res: Response) => {
       email: user.email,
     });
   } catch (error) {
-    console.error(error);
     res.status(500).json({
       error: 'Internal Server Error',
       message: 'Something went wrong',

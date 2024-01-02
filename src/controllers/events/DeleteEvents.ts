@@ -65,7 +65,6 @@ export const deleteEvents = async (req: Request, res: Response) => {
 
     return res.status(200).json({ deletedEvents });
   } catch (error) {
-    console.error(error);
     return res.status(500).json({
       statusCode: 500,
       error: 'Internal Server Error',

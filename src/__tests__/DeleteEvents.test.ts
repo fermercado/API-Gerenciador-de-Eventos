@@ -135,4 +135,18 @@ describe('Delete Events', () => {
       message: 'Day of the week is required.',
     });
   });
+  it('should return 500 if a server error occurs', async () => {
+    jest.spyOn(Event, 'find').mockImplementationOnce(() => {
+      throw new Error();
+    });
+
+    const response = await request(app)
+      .delete('/api/v1/events')
+      .set('Authorization', `Bearer ${userToken}`)
+      .query({ dayOfWeek: 'monday' });
+
+    expect(response.status).toBe(500);
+
+    jest.restoreAllMocks();
+  });
 });

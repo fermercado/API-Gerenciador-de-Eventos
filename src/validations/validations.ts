@@ -8,8 +8,12 @@ export const userValidationSchema = yup.object({
     .required('Birth date is required.')
     .matches(
       /^\d{4}-\d{2}-\d{2}$/,
-      'Invalid birth date format. Please use YYYY-MM-DD.',
-    ),
+      'Invalid birth date format. Please use YYYY-MM-DD',
+    )
+    .test('is-valid-date', 'Invalid birth date', (value) => {
+      const date = new Date(value);
+      return !isNaN(date.getTime()); // Correção aqui
+    }),
   city: yup.string().required('City is required.'),
   country: yup.string().required('Country is required.'),
   email: yup

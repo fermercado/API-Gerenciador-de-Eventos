@@ -62,7 +62,7 @@ describe('Get Events', () => {
     await createTestUserAndEvent();
   });
 
-  it('only user events', async () => {
+  it('should retrieve only user events', async () => {
     const response = await request(app)
       .get('/api/v1/events')
       .query({ onlyMyEvents: 'true' })
@@ -77,7 +77,7 @@ describe('Get Events', () => {
     ).toBeTruthy();
   });
 
-  it('retrieves events', async () => {
+  it('should retrieve events', async () => {
     const response = await request(app)
       .get('/api/v1/events')
       .set('Authorization', `Bearer ${userToken}`);
@@ -86,19 +86,20 @@ describe('Get Events', () => {
     expect(response.body).toBeInstanceOf(Array);
   });
 
-  it('handles unauthorized access', async () => {
+  it('should handle unauthorized access', async () => {
     const response = await request(app)
       .get('/api/v1/events')
       .set('Authorization', 'Bearer invalidToken');
 
     expect(response.status).toBe(401);
     expect(response.body).toEqual({
+      statusCode: 401,
       error: 'Unauthorized',
-      message: 'Not Authenticated',
+      message: 'Not authenticated',
     });
   });
 
-  it('by dayOfWeek', async () => {
+  it('should retrieve events by dayOfWeek', async () => {
     const response = await request(app)
       .get('/api/v1/events')
       .query({ dayOfWeek: 'monday' })
@@ -111,7 +112,7 @@ describe('Get Events', () => {
     ).toBeTruthy();
   });
 
-  it('no events on day error', async () => {
+  it('should handle no events on specified day error', async () => {
     const response = await request(app)
       .get('/api/v1/events')
       .query({ dayOfWeek: 'sunday' })
@@ -125,7 +126,7 @@ describe('Get Events', () => {
     });
   });
 
-  it('by description', async () => {
+  it('should retrieve events by description', async () => {
     const response = await request(app)
       .get('/api/v1/events')
       .query({ description: 'Maria Event' })
@@ -137,7 +138,8 @@ describe('Get Events', () => {
       response.body.some((event: Event) => event.description === 'Maria Event'),
     ).toBeTruthy();
   });
-  it('handles no events found', async () => {
+
+  it('should handle no events found error', async () => {
     await Event.deleteMany({});
     let response = await request(app)
       .get('/api/v1/events?onlyMyEvents=true')
@@ -161,7 +163,8 @@ describe('Get Events', () => {
       message: 'No events found',
     });
   });
-  it('handles server error during event retrieval', async () => {
+
+  it('should handle server error during event retrieval', async () => {
     jest.spyOn(Event, 'find').mockImplementationOnce(() => {
       throw new Error('Test Error');
     });

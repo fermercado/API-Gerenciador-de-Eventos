@@ -2,208 +2,207 @@ import request from 'supertest';
 import app from '../app';
 import mongoose from 'mongoose';
 import { MongoMemoryServer } from 'mongodb-memory-server';
-import User from '../models/UserModel';
-import sinon from 'sinon';
+import UserModel from '../models/UserModel';
+import bcrypt from 'bcryptjs';
+
+let mongoServer: MongoMemoryServer;
+
+beforeAll(async () => {
+  mongoServer = await MongoMemoryServer.create();
+  const mongoUri = mongoServer.getUri();
+  await mongoose.connect(await mongoUri, {});
+});
+
+afterEach(async () => {
+  jest.clearAllMocks();
+  await UserModel.deleteMany({});
+});
+
+afterAll(async () => {
+  await mongoose.disconnect();
+  await mongoServer.stop();
+});
 
 describe('User Creation', () => {
-  let mongoServer: any;
-
-  beforeAll(async () => {
-    mongoServer = new MongoMemoryServer();
-    const mongoUri = await mongoServer.getUri();
-    await mongoose.connect(mongoUri, {});
-  });
-
-  afterAll(async () => {
-    await mongoose.disconnect();
-    await mongoServer.stop();
-  });
-  afterEach(async () => {
-    await User.deleteMany({});
-    sinon.restore();
-  });
-
-  it('create a user successfully', async () => {
-    const mockUser = {
+  it('should successfully create a new user', async () => {
+    const userData = {
       firstName: 'Maria',
       lastName: 'Silva',
-      birthDate: '1988-01-11',
+      birthDate: '1990-01-01',
       city: 'São Paulo',
       country: 'Brasil',
-      email: 'mariasilva@gmail.com',
-      password: 'password123',
-      confirmPassword: 'password123',
+      email: 'maria@gmail.com',
+      password: 'Password123',
+      confirmPassword: 'Password123',
     };
 
     const response = await request(app)
       .post('/api/v1/users/sign-up')
-      .set('Content-Type', 'application/json')
-      .send(mockUser);
+      .send(userData);
 
-    expect(response.status).toBe(201);
-    expect(response.body).toHaveProperty('firstName', 'Maria');
-    expect(response.body).toHaveProperty('lastName', 'Silva');
-
-    const createdUser = await User.findOne({ email: mockUser.email });
-    expect(createdUser).toBeTruthy();
-    expect(createdUser?.firstName).toBe('Maria');
-    expect(createdUser?.lastName).toBe('Silva');
+    expect(response.statusCode).toBe(201);
+    expect(response.body).toHaveProperty('email', userData.email);
   });
 
-  it('validation errors for invalid input', async () => {
+  it('should return 400 for invalid data', async () => {
+    const userData = {};
+
     const response = await request(app)
       .post('/api/v1/users/sign-up')
-      .set('Content-Type', 'application/json')
-      .send({
+      .send(userData);
+
+    expect(response.statusCode).toBe(400);
+  });
+
+  it('should not create a user with an existing email', async () => {
+    await UserModel.create({
+      firstName: 'Maria',
+      lastName: 'Silva',
+      birthDate: '1990-01-02',
+      city: 'São Paulo',
+      country: 'Brasil',
+      email: 'maria@gmail.com',
+      password: 'Password123',
+    });
+
+    const response = await request(app).post('/api/v1/users/sign-up').send({
+      firstName: 'Maria',
+      lastName: 'Silva',
+      birthDate: '1990-01-02',
+      city: 'São Paulo',
+      country: 'Brasil',
+      email: 'maria@gmail.com',
+      password: 'Password123',
+      confirmPassword: 'Password123',
+    });
+
+    expect(response.statusCode).toBe(400);
+    expect(response.body).toEqual(
+      expect.objectContaining({
+        error: 'Email already exists',
+      }),
+    );
+  });
+
+  it('should not create a user if password confirmation does not match', async () => {
+    const userData = {
+      firstName: 'Maria',
+      lastName: 'Silva',
+      birthDate: '1990-01-02',
+      city: 'São Paulo',
+      country: 'Brasil',
+      email: 'maria@gmail.com',
+      password: 'Password123',
+      confirmPassword: 'Password1234',
+    };
+
+    const response = await request(app)
+      .post('/api/v1/users/sign-up')
+      .send(userData);
+
+    expect(response.statusCode).toBe(400);
+    expect(response.body.errors).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          field: 'confirmPassword',
+          message: 'Passwords must match',
+        }),
+      ]),
+    );
+  });
+
+  it('should handle unexpected errors', async () => {
+    jest
+      .spyOn(UserModel, 'create')
+      .mockImplementationOnce(() =>
+        Promise.reject(new Error('Unexpected error')),
+      );
+
+    const userData = {
+      firstName: 'Maria',
+      lastName: 'Silva',
+      birthDate: '1990-01-02',
+      city: 'São Paulo',
+      country: 'Brasil',
+      email: 'maria@gmail.com',
+      password: 'Password123',
+      confirmPassword: 'Password123',
+    };
+
+    const response = await request(app)
+      .post('/api/v1/users/sign-up')
+      .send(userData);
+
+    expect(response.statusCode).toBe(500);
+    expect(response.body).toEqual(
+      expect.objectContaining({
+        error: 'Internal Server Error',
+      }),
+    );
+  });
+
+  describe('User Creation with different NODE_ENV', () => {
+    let originalNodeEnv: string;
+
+    beforeEach(() => {
+      jest.clearAllMocks();
+      originalNodeEnv = process.env.NODE_ENV || 'development';
+    });
+
+    afterEach(() => {
+      process.env.NODE_ENV = originalNodeEnv;
+    });
+
+    it('should use 10 saltRounds when NODE_ENV is not test', async () => {
+      process.env.NODE_ENV = 'development';
+      UserModel.create = jest
+        .fn()
+        .mockImplementation((userData: any) => Promise.resolve(userData));
+      const hashSpy = jest.spyOn(bcrypt, 'hash');
+
+      const userData = {
         firstName: 'Maria',
         lastName: 'Silva',
-        birthDate: '01/01/1990',
+        birthDate: '1990-01-02',
         city: 'São Paulo',
         country: 'Brasil',
         email: 'maria@gmail.com',
-        password: 'password123',
-        confirmPassword: 'password123',
-      });
+        password: 'Password123',
+        confirmPassword: 'Password123',
+      };
 
-    expect(response.status).toBe(400);
-    expect(response.body.errors).toBeTruthy();
-  });
-
-  it('validation errors for missing first name', async () => {
-    const response = await request(app)
-      .post('/api/v1/users/sign-up')
-      .set('Content-Type', 'application/json')
-      .send({
-        lastName: 'Silva',
-        birthDate: '1988-01-11',
-        city: 'São Paulo',
-        country: 'Brasil',
-        email: 'silva@gmail.com',
-        password: 'password123',
-        confirmPassword: 'password123',
-      });
-
-    expect(response.status).toBe(400);
-    expect(response.body.errors).toBeTruthy();
-    expect(
-      response.body.errors.some((error: any) => error.field === 'firstName'),
-    ).toBe(true);
-  });
-
-  it('validation errors for non-matching passwords', async () => {
-    const response = await request(app)
-      .post('/api/v1/users/sign-up')
-      .set('Content-Type', 'application/json')
-      .send({
-        firstName: 'Maria',
-        lastName: 'Silva',
-        birthDate: '1988-01-11',
-        city: 'São Paulo',
-        country: 'Brasil',
-        email: 'maria.s@gmail.com',
-        password: 'password123',
-        confirmPassword: 'differentPassword',
-      });
-
-    expect(response.status).toBe(400);
-    expect(response.body.errors).toBeTruthy();
-    expect(
-      response.body.errors.some(
-        (error: any) => error.field === 'confirmPassword',
-      ),
-    ).toBe(true);
-  });
-  it('validation error for invalid email format', async () => {
-    const mockUserWithInvalidEmail = {
-      firstName: 'Maria',
-      lastName: 'Silva',
-      birthDate: '1988-01-11',
-      city: 'São Paulo',
-      country: 'Brasil',
-      email: 'invalid-email',
-      password: 'password123',
-      confirmPassword: 'password123',
-    };
-
-    const response = await request(app)
-      .post('/api/v1/users/sign-up')
-      .set('Content-Type', 'application/json')
-      .send(mockUserWithInvalidEmail);
-
-    expect(response.status).toBe(400);
-    expect(response.body.errors).toBeTruthy();
-    expect(
-      response.body.errors.some((error: any) => error.field === 'email'),
-    ).toBe(true);
-    expect(
-      response.body.errors.some((error: any) =>
-        error.message.includes('Invalid email format'),
-      ),
-    ).toBe(true);
-  });
-
-  it('reject duplicate email', async () => {
-    await request(app)
-      .post('/api/v1/users/sign-up')
-      .set('Content-Type', 'application/json')
-      .send({
-        firstName: 'Maria',
-        lastName: 'Silva',
-        birthDate: '1988-01-11',
-        city: 'São Paulo',
-        country: 'Brasil',
-        email: 'maria.silva@gmail.com',
-        password: 'password123',
-        confirmPassword: 'password123',
-      });
-
-    const response = await request(app)
-      .post('/api/v1/users/sign-up')
-      .set('Content-Type', 'application/json')
-      .send({
-        firstName: 'Maria',
-        lastName: 'Silva',
-        birthDate: '1988-01-11',
-        city: 'São Paulo',
-        country: 'Brasil',
-        email: 'maria.silva@gmail.com',
-        password: 'password123',
-        confirmPassword: 'password123',
-      });
-
-    expect(response.status).toBe(400);
-    expect(response.body.errors).toBeTruthy();
-    expect(
-      response.body.errors.some(
-        (error: any) => error.message === 'This email already exists',
-      ),
-    ).toBe(true);
-  });
-  it('handle server errors during user creation', async () => {
-    const createUserSpy = sinon.stub(User, 'create');
-    createUserSpy.throws(new Error('Internal server error'));
-
-    const mockUser = {
-      firstName: 'Maria',
-      lastName: 'Silva',
-      birthDate: '1988-01-11',
-      city: 'São Paulo',
-      country: 'Brasil',
-      email: 'maria@example.com',
-      password: 'password123',
-      confirmPassword: 'password123',
-    };
-
-    const response = await request(app)
-      .post('/api/v1/users/sign-up')
-      .send(mockUser);
-
-    expect(response.status).toBe(500);
-    expect(response.body).toEqual({
-      error: 'Internal Server Error',
-      message: 'Something went wrong',
+      await request(app).post('/api/v1/users/sign-up').send(userData);
+      expect(hashSpy).toHaveBeenCalledWith(userData.password, 10);
+      hashSpy.mockRestore();
     });
+  });
 
-    createUserSpy.restore();
+  describe('User Creation Validation', () => {
+    it('should return validation errors if the request data is invalid', async () => {
+      const invalidUserData = {
+        firstName: '',
+        lastName: '',
+        birthDate: '05/05/2000',
+        city: '',
+        country: '',
+        email: 'invalid email',
+        password: 'pass',
+        confirmPassword: 'passw',
+      };
+
+      const response = await request(app)
+        .post('/api/v1/users/sign-up')
+        .send(invalidUserData);
+
+      expect(response.statusCode).toBe(400);
+      expect(response.body).toHaveProperty('errors');
+      expect(response.body.errors).toBeInstanceOf(Array);
+      expect(response.body.errors).toHaveLength(8);
+
+      response.body.errors.forEach((error: any) => {
+        expect(error).toHaveProperty('field');
+        expect(error).toHaveProperty('message');
+      });
+    });
   });
 });

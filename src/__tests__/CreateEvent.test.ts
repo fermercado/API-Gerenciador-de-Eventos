@@ -56,7 +56,7 @@ describe('Event Creation', () => {
     await createTestUser();
   });
 
-  it('should create an event successfully', async () => {
+  it('should successfully create an event', async () => {
     const mockEvent = getMockEvent();
 
     const response = await request(app)
@@ -92,7 +92,7 @@ describe('Event Creation', () => {
     expect(response.body.errors[0].message).toBe('Invalid day of the week');
   });
 
-  it('creation without authentication', async () => {
+  it('should fail creation without authentication', async () => {
     const mockEvent = getMockEvent();
 
     const response = await request(app).post('/api/v1/events').send(mockEvent);
@@ -100,7 +100,7 @@ describe('Event Creation', () => {
     expect(response.status).toBe(401);
     expect(response.body).toEqual({
       error: 'Unauthorized',
-      message: 'Not Authenticated',
+      message: 'Not authenticated',
     });
   });
 
@@ -122,7 +122,7 @@ describe('Event Creation', () => {
     jest.restoreAllMocks();
   });
 
-  it('should create an event successfully', async () => {
+  it('should successfully create an event', async () => {
     const mockEvent = getMockEvent();
 
     const response = await request(app)
@@ -136,7 +136,7 @@ describe('Event Creation', () => {
     expect(response.body).toHaveProperty('userId', userId.toString());
   });
 
-  it('validation errors for invalid input', async () => {
+  it('should have validation errors for invalid input', async () => {
     const response = await request(app)
       .post('/api/v1/events')
       .set('Authorization', `Bearer ${userToken}`)
@@ -149,7 +149,7 @@ describe('Event Creation', () => {
     expect(response.body.errors).toBeTruthy();
   });
 
-  it('creation without authentication', async () => {
+  it('should fail creation without authentication', async () => {
     const mockEvent = getMockEvent();
 
     const response = await request(app).post('/api/v1/events').send(mockEvent);
@@ -157,11 +157,11 @@ describe('Event Creation', () => {
     expect(response.status).toBe(401);
     expect(response.body).toEqual({
       error: 'Unauthorized',
-      message: 'Not Authenticated',
+      message: 'Not authenticated',
     });
   });
 
-  it('validation errors for missing fields', async () => {
+  it('should have validation errors for missing fields', async () => {
     const response = await request(app)
       .post('/api/v1/events')
       .set('Authorization', `Bearer ${userToken}`)
@@ -173,7 +173,7 @@ describe('Event Creation', () => {
     expect(response.body.errors).toBeTruthy();
   });
 
-  it('reject event with invalid dayOfWeek', async () => {
+  it('should reject event with invalid dayOfWeek', async () => {
     const response = await request(app)
       .post('/api/v1/events')
       .set('Authorization', `Bearer ${userToken}`)
@@ -186,7 +186,7 @@ describe('Event Creation', () => {
     expect(response.body.errors).toBeTruthy();
   });
 
-  it('handle internal server error', async () => {
+  it('should handle internal server error', async () => {
     jest
       .spyOn(Event, 'create')
       .mockImplementationOnce(() =>

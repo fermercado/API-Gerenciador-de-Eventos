@@ -1,10 +1,10 @@
 node_modules/
-*.js
 *.map
 *.tsbuildinfo
 .env
 .vscode/
 coverage/
+jest.setup.js
 testResults.json
 jest.cache/
 npm-debug.log

@@ -56,8 +56,7 @@ Welcome to the Event Management API! This project is a backend application devel
 
 ```sh
 # Clone the Repository
-git clone [your-repository]
-cd [project-name]
+git clone https://github.com/fermercado/Challenge-3-Node-AWS.git
 ```
 
 ```sh
@@ -69,6 +68,11 @@ npm install
 
 -Rename the `.env.example` file to `.env`.
 -Fill in the necessary information in the `.env` file, such as environment variables for database connection, JWT secret key, etc.
+
+## Use Docker
+
+-To containerize and run the project, use Docker.
+-Deployment was done using Docker and is available at: https://challenger-3-compass.onrender.com"
 
 ```sh
 # Run the Project

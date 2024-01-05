@@ -18,7 +18,6 @@ const port = process.env.PORT || 3000;
 app.use(express.json());
 app.use('/api/v1/users', userRoutes);
 app.use('/api/v1/events', EventRoutes);
-
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerOptions));
 
 if (process.env.NODE_ENV !== 'test') {

@@ -36,11 +36,13 @@ export const createUser = async (req: Request, res: Response) => {
   } catch (error: any) {
     if (error.name === 'ValidationError') {
       const yupError = error as yup.ValidationError;
-      const validationErrors = yupError.inner.map((err) => ({
+
+      const errors = yupError.inner.map((err) => ({
         field: err.path,
         message: err.message,
       }));
-      return res.status(400).json({ errors: validationErrors });
+
+      return res.status(400).json({ errors });
     }
 
     res.status(500).json({

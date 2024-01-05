@@ -10,20 +10,25 @@ interface User extends Document {
   password: string;
 }
 
-const UserSchema = new Schema({
-  firstName: { type: String, required: true },
-  lastName: { type: String, required: true },
-  birthDate: { type: Date, required: true },
-  city: { type: String, required: true },
-  country: { type: String, required: true },
-  email: { type: String, required: true, unique: true },
-  password: { type: String, required: true },
-});
+const UserSchema = new Schema(
+  {
+    firstName: { type: String, required: true },
+    lastName: { type: String, required: true },
+    birthDate: { type: Date, required: true },
+    city: { type: String, required: true },
+    country: { type: String, required: true },
+    email: { type: String, required: true, unique: true },
+    password: { type: String, required: true },
+  },
+  { versionKey: false },
+);
 
-UserSchema.set('toJSON', {
+UserSchema.set('toObject', {
   transform: function (doc, ret) {
     delete ret.password;
   },
 });
 
-export default mongoose.model<User>('User', UserSchema);
+const UserModel = mongoose.model<User>('User', UserSchema);
+
+export default UserModel;

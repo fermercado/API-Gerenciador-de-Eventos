@@ -5,7 +5,6 @@ node_modules/
 .env
 .vscode/
 coverage/
-jest.setup.js
 testResults.json
 jest.cache/
 npm-debug.log

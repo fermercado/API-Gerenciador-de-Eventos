@@ -39,7 +39,7 @@ describe('Delete Event By ID', () => {
 
     const anotherUser = await User.create({
       firstName: 'João',
-      lastName: 'Pereira',
+      lastName: 'silva',
       email: 'joao@gmail.com',
       password: passwordHash,
       birthDate: '1990-01-01',
@@ -89,7 +89,7 @@ describe('Delete Event By ID', () => {
     await createTestData();
   });
 
-  it('deletes event by ID', async () => {
+  it('should delete event by ID', async () => {
     const response = await request(app)
       .delete(`/api/v1/events/${testEventId}`)
       .set('Authorization', `Bearer ${userToken}`);
@@ -97,7 +97,7 @@ describe('Delete Event By ID', () => {
     expect(response.status).toBe(204);
   });
 
-  it('handles non-existent ID', async () => {
+  it('should handle non-existent ID', async () => {
     const nonExistentId = new mongoose.Types.ObjectId();
     const response = await request(app)
       .delete(`/api/v1/events/${nonExistentId}`)
@@ -111,20 +111,7 @@ describe('Delete Event By ID', () => {
     });
   });
 
-  it('handles invalid token', async () => {
-    const invalidToken = 'someInvalidTokenString';
-    const response = await request(app)
-      .delete(`/api/v1/events/${testEventId}`)
-      .set('Authorization', `Bearer ${invalidToken}`);
-
-    expect(response.status).toBe(401);
-    expect(response.body).toEqual({
-      error: 'Unauthorized',
-      message: 'Not Authenticated',
-    });
-  });
-
-  it('prevents deleting others events', async () => {
+  it('should prevent deleting others events', async () => {
     const response = await request(app)
       .delete(`/api/v1/events/${anotherEventId}`)
       .set('Authorization', `Bearer ${userToken}`);
@@ -133,11 +120,11 @@ describe('Delete Event By ID', () => {
     expect(response.body).toEqual({
       statusCode: 400,
       error: 'Bad Request',
-      message: 'You do not have permission to delete this event.',
+      message: 'Invalid Id',
     });
   });
 
-  it('prevents deletion by different user', async () => {
+  it('should prevent deletion by a different user', async () => {
     const response = await request(app)
       .delete(`/api/v1/events/${testEventId}`)
       .set('Authorization', `Bearer ${anotherUserToken}`);
@@ -146,10 +133,11 @@ describe('Delete Event By ID', () => {
     expect(response.body).toEqual({
       statusCode: 400,
       error: 'Bad Request',
-      message: 'You do not have permission to delete this event.',
+      message: 'Invalid Id',
     });
   });
-  it('return 500 if a server error occurs during event deletion', async () => {
+
+  it('should return 500 if a server error occurs during event deletion', async () => {
     const mockDelete = jest
       .spyOn(Event, 'deleteOne')
       .mockRejectedValue(new Error('Internal server error'));

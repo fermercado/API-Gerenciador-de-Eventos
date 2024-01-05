@@ -27,7 +27,7 @@ describe('Get Event By ID', () => {
     await mongoServer.stop();
   });
 
-  it('retrieves event by ID', async () => {
+  it('should retrieve event by ID', async () => {
     const response = await request(app)
       .get(`/api/v1/events/${testEventId}`)
       .set('Authorization', `Bearer ${userToken}`);
@@ -36,7 +36,7 @@ describe('Get Event By ID', () => {
     expect(response.body).toHaveProperty('_id', testEventId.toString());
   });
 
-  it('handles non-existent ID', async () => {
+  it('should handle non-existent ID', async () => {
     const nonExistentId = new mongoose.Types.ObjectId();
     const response = await request(app)
       .get(`/api/v1/events/${nonExistentId}`)
@@ -50,7 +50,7 @@ describe('Get Event By ID', () => {
     });
   });
 
-  it('handles server error', async () => {
+  it('should handle server error', async () => {
     jest.spyOn(Event, 'findOne').mockImplementationOnce(() => {
       throw new Error('Test Error');
     });
@@ -91,7 +91,7 @@ describe('Get Event By ID', () => {
     return testEvent._id;
   }
 
-  it('handles invalid event ID format', async () => {
+  it('should handle invalid event ID format', async () => {
     const invalidId = '123';
     const response = await request(app)
       .get(`/api/v1/events/${invalidId}`)

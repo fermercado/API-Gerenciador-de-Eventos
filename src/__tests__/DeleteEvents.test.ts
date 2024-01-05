@@ -8,9 +8,9 @@ import * as bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 
 describe('Delete Events', () => {
-  let mongoServer: any;
+  let mongoServer: MongoMemoryServer;
   let userToken: string;
-  let userId: string;
+  let userId: any;
 
   const createTestEvents = async () => {
     await Event.create([
@@ -22,7 +22,7 @@ describe('Delete Events', () => {
   beforeAll(async () => {
     mongoServer = await MongoMemoryServer.create();
     const mongoUri = await mongoServer.getUri();
-    await mongoose.connect(mongoUri, {});
+    await mongoose.connect(await mongoUri);
 
     const passwordHash = await bcrypt.hash('password123', 10);
     const user = await User.create({
@@ -36,7 +36,7 @@ describe('Delete Events', () => {
     });
 
     userId = user._id.toString();
-    userToken = jwt.sign({ userId: userId }, process.env.JWT_SECRET || '', {
+    userToken = jwt.sign({ userId }, process.env.JWT_SECRET || '', {
       expiresIn: '1h',
     });
 
@@ -54,62 +54,20 @@ describe('Delete Events', () => {
     await createTestEvents();
   });
 
-  it('return 401 Unauthorized if the user is not authenticated', async () => {
+  it('should return Unauthorized if User Not Authenticated', async () => {
     const response = await request(app)
       .delete('/api/v1/events')
       .query({ dayOfWeek: 'monday' });
 
     expect(response.status).toBe(401);
     expect(response.body).toEqual({
+      statusCode: 401,
       error: 'Unauthorized',
       message: 'Not Authenticated',
     });
   });
 
-  it(' 404 Not Found if no events are found for deletion', async () => {
-    const response = await request(app)
-      .delete('/api/v1/events')
-      .query({ dayOfWeek: 'sunday' })
-      .set('Authorization', `Bearer ${userToken}`);
-
-    expect(response.status).toBe(404);
-    expect(response.body).toEqual({
-      statusCode: 404,
-      error: 'Not Found',
-      message: 'No events found for deletion.',
-    });
-  });
-
-  it('delete and return events by day of week', async () => {
-    const response = await request(app)
-      .delete('/api/v1/events')
-      .query({ dayOfWeek: 'monday' })
-      .set('Authorization', `Bearer ${userToken}`);
-
-    expect(response.status).toBe(200);
-    expect(response.body.deletedEvents).toBeInstanceOf(Array);
-    expect(response.body.deletedEvents[0].dayOfWeek).toBe('monday');
-    expect(response.body.deletedEvents[0]).toHaveProperty('description');
-    expect(response.body.deletedEvents[0]).toHaveProperty('_id');
-    expect(response.body.deletedEvents[0]).toHaveProperty('userId');
-  });
-
-  it('deletes and returns events', async () => {
-    const response = await request(app)
-      .delete('/api/v1/events')
-      .query({ dayOfWeek: 'tuesday' })
-      .set('Authorization', `Bearer ${userToken}`);
-
-    expect(response.status).toBe(200);
-    expect(response.body.deletedEvents).toBeInstanceOf(Array);
-    expect(response.body.deletedEvents.length).toBeGreaterThan(0);
-    expect(response.body.deletedEvents[0]).toHaveProperty(
-      'dayOfWeek',
-      'tuesday',
-    );
-  });
-
-  it('errors on invalid day', async () => {
+  it('should return Bad Request for Invalid Day of Week', async () => {
     const response = await request(app)
       .delete('/api/v1/events')
       .query({ dayOfWeek: 'invalid-day' })
@@ -123,7 +81,7 @@ describe('Delete Events', () => {
     });
   });
 
-  it('errors without day', async () => {
+  it('should return Bad Request if Day of Week Not Provided', async () => {
     const response = await request(app)
       .delete('/api/v1/events')
       .set('Authorization', `Bearer ${userToken}`);
@@ -132,21 +90,137 @@ describe('Delete Events', () => {
     expect(response.body).toEqual({
       statusCode: 400,
       error: 'Bad Request',
-      message: 'Day of the week is required.',
+      message: 'Invalid information',
     });
   });
-  it('should return 500 if a server error occurs', async () => {
+
+  it('should return Not Found if No Events to Delete', async () => {
+    const response = await request(app)
+      .delete('/api/v1/events')
+      .query({ dayOfWeek: 'sunday' })
+      .set('Authorization', `Bearer ${userToken}`);
+
+    expect(response.status).toBe(404);
+    expect(response.body).toEqual({
+      statusCode: 404,
+      error: 'Not Found',
+      message: 'No events found for deletion.',
+    });
+  });
+
+  it('should Delete and Return Events by Day of Week', async () => {
+    const response = await request(app)
+      .delete('/api/v1/events')
+      .query({ dayOfWeek: 'monday' })
+      .set('Authorization', `Bearer ${userToken}`);
+
+    expect(response.status).toBe(200);
+    expect(response.body.deletedEvents).toBeInstanceOf(Array);
+    expect(response.body.deletedEvents).toHaveLength(1);
+  });
+
+  it('should return Internal Server Error on Server Failure', async () => {
     jest.spyOn(Event, 'find').mockImplementationOnce(() => {
       throw new Error();
     });
 
     const response = await request(app)
       .delete('/api/v1/events')
-      .set('Authorization', `Bearer ${userToken}`)
-      .query({ dayOfWeek: 'monday' });
+      .query({ dayOfWeek: 'monday' })
+      .set('Authorization', `Bearer ${userToken}`);
 
     expect(response.status).toBe(500);
 
     jest.restoreAllMocks();
+  });
+
+  it('should Delete and Return Events for Each Day', async () => {
+    const daysOfWeek = [
+      'monday',
+      'tuesday',
+      'wednesday',
+      'thursday',
+      'friday',
+      'saturday',
+      'sunday',
+    ];
+    for (const day of daysOfWeek) {
+      await Event.create({
+        description: `Event on ${day}`,
+        dayOfWeek: day,
+        userId,
+      });
+
+      const response = await request(app)
+        .delete('/api/v1/events')
+        .query({ dayOfWeek: day })
+        .set('Authorization', `Bearer ${userToken}`);
+
+      expect(response.status).toBe(200);
+      expect(response.body.deletedEvents).toBeInstanceOf(Array);
+
+      response.body.deletedEvents.forEach((event: { dayOfWeek: any }) => {
+        expect(event.dayOfWeek).toBe(day);
+      });
+
+      const remainingEvents = await Event.find({ dayOfWeek: day, userId });
+      expect(remainingEvents).toHaveLength(0);
+    }
+  });
+
+  it('should return Not Found if No Events on Specified Day', async () => {
+    await Event.deleteMany({ dayOfWeek: 'wednesday' });
+    const response = await request(app)
+      .delete('/api/v1/events')
+      .query({ dayOfWeek: 'wednesday' })
+      .set('Authorization', `Bearer ${userToken}`);
+
+    expect(response.status).toBe(404);
+    expect(response.body).toEqual({
+      statusCode: 404,
+      error: 'Not Found',
+      message: 'No events found for deletion.',
+    });
+  });
+
+  it('should Not Delete Other Users Events', async () => {
+    const anotherUser = await User.create({
+      firstName: 'João',
+      lastName: 'Silva',
+      email: 'joao@gmail.com',
+      password: bcrypt.hashSync('password456', 10),
+      birthDate: '1990-05-15',
+      city: 'Rio de Janeiro',
+      country: 'Brasil',
+    });
+
+    const anotherUserId = anotherUser._id.toString();
+    await Event.create({
+      description: 'Event 3',
+      dayOfWeek: 'monday',
+      userId: anotherUserId,
+    });
+
+    const response = await request(app)
+      .delete('/api/v1/events')
+      .query({ dayOfWeek: 'monday' })
+      .set('Authorization', `Bearer ${userToken}`);
+
+    expect(response.status).toBe(200);
+    expect(response.body.deletedEvents).toHaveLength(1);
+
+    const remainingEvent = await Event.findOne({
+      userId: anotherUserId,
+      dayOfWeek: 'monday',
+    });
+    expect(remainingEvent).not.toBeNull();
+  });
+
+  it('should Fail to Delete Events Without Authentication', async () => {
+    const response = await request(app)
+      .delete('/api/v1/events')
+      .query({ dayOfWeek: 'monday' });
+
+    expect(response.status).toBe(401);
   });
 });

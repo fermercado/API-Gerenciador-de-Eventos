@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import Event from '../../models/EventModel';
+import User from '../../models/UserModel';
 
 interface Query {
   description?: { $regex: string; $options: 'i' };
@@ -9,7 +10,9 @@ interface Query {
 
 export const getEvents = async (req: Request, res: Response) => {
   try {
-    if (!req.userId) {
+    const userId = req.userId;
+    const userExists = await User.findById(userId);
+    if (!userExists) {
       return res.status(401).json({
         statusCode: 401,
         error: 'Unauthorized',

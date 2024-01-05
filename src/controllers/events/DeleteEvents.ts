@@ -17,7 +17,7 @@ export const deleteEvents = async (req: Request, res: Response) => {
       return res.status(400).json({
         statusCode: 400,
         error: 'Bad Request',
-        message: 'Day of the week is required.',
+        message: 'Invalid information',
       });
     }
 

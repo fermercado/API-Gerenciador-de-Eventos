@@ -1,11 +1,17 @@
 import { Request, Response } from 'express';
 import * as bcrypt from 'bcryptjs';
 import User from '../../models/UserModel';
+import * as yup from 'yup';
 import { userValidationSchema } from '../../validations/validations';
 
 export const createUser = async (req: Request, res: Response) => {
   try {
     await userValidationSchema.validate(req.body, { abortEarly: false });
+
+    const existingUser = await User.findOne({ email: req.body.email });
+    if (existingUser) {
+      return res.status(400).json({ error: 'Email already exists' });
+    }
 
     const saltRounds = process.env.NODE_ENV === 'test' ? 1 : 10;
     const hashedPassword = await bcrypt.hash(req.body.password, saltRounds);
@@ -19,15 +25,18 @@ export const createUser = async (req: Request, res: Response) => {
       email: req.body.email,
       password: hashedPassword,
     });
-    const userWithoutTime = {
+
+    const userWithoutPassword = {
       ...user.toObject(),
       birthDate: user.birthDate.toISOString().split('T')[0],
+      password: undefined,
     };
 
-    res.status(201).json(userWithoutTime);
+    res.status(201).json(userWithoutPassword);
   } catch (error: any) {
     if (error.name === 'ValidationError') {
-      const validationErrors = (error.inner || []).map((err: any) => ({
+      const yupError = error as yup.ValidationError;
+      const validationErrors = yupError.inner.map((err) => ({
         field: err.path,
         message: err.message,
       }));

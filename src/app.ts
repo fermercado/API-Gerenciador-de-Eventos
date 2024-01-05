@@ -16,9 +16,15 @@ const app: Application = express();
 const port = process.env.PORT || 3000;
 
 app.use(express.json());
+
 app.use('/api/v1/users', userRoutes);
 app.use('/api/v1/events', EventRoutes);
+
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerOptions));
+
+app.get('/', (req, res) => {
+  res.redirect('/api-docs');
+});
 
 if (process.env.NODE_ENV !== 'test') {
   app.listen(port, () => {

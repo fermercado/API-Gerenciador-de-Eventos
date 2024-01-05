@@ -621,13 +621,13 @@
               }
             }
           },
-          "204": {
+          "200": {
             "description": "Event deleted",
             "content": {
               "application/json": {
                 "example": { 
-                  "statusCode": 204,
-                  "message": "Event deleted successfully"
+                  "statusCode": 200,
+                  "message": "Event deleted "
                 }
               }
             }

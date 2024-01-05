@@ -17,18 +17,14 @@ export const authenticateUser = (
   const token = req.header('Authorization')?.replace('Bearer ', '');
 
   if (!token) {
-    return res
-      .status(401)
-      .json({ error: 'Unauthorized', message: 'Not Authenticated' });
+    return next();
   }
 
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET || '');
     req.userId = (decoded as { userId: string }).userId;
-    next();
+    return next();
   } catch (error) {
-    return res
-      .status(401)
-      .json({ error: 'Unauthorized', message: 'Not Authenticated' });
+    return next();
   }
 };

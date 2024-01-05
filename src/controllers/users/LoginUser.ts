@@ -6,7 +6,6 @@ import User from '../../models/UserModel';
 export const loginUser = async (req: Request, res: Response) => {
   try {
     const user = await User.findOne({ email: req.body.email });
-
     if (!user) {
       return res.status(400).json({
         type: 'Validation Error',
@@ -26,7 +25,11 @@ export const loginUser = async (req: Request, res: Response) => {
       });
     }
 
-    const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET || '', {
+    if (!process.env.JWT_SECRET) {
+      throw new Error('JWT_SECRET is not defined.');
+    }
+
+    const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, {
       expiresIn: '1h',
     });
 
@@ -36,7 +39,7 @@ export const loginUser = async (req: Request, res: Response) => {
       lastName: user.lastName,
       email: user.email,
     });
-  } catch (error) {
+  } catch (error: any) {
     res.status(500).json({
       error: 'Internal Server Error',
       message: 'Something went wrong',

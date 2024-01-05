@@ -5,14 +5,6 @@ export const deleteEventById = async (req: Request, res: Response) => {
   try {
     const eventId = req.params.id;
 
-    if (!eventId) {
-      return res.status(400).json({
-        statusCode: 400,
-        error: 'Bad Request',
-        message: 'Event ID is required.',
-      });
-    }
-
     const event = await Event.findById(eventId);
 
     if (!event) {
@@ -27,7 +19,7 @@ export const deleteEventById = async (req: Request, res: Response) => {
       return res.status(400).json({
         statusCode: 400,
         error: 'Bad Request',
-        message: 'You do not have permission to delete this event.',
+        message: 'Invalid Id',
       });
     }
 

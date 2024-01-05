@@ -19,12 +19,18 @@ export const createEvent = async (req: Request, res: Response) => {
     }
 
     const event = await Event.create({
+      userId: req.userId,
       description,
       dayOfWeek,
-      userId: req.userId,
     });
+    const eventResponse = {
+      _id: event._id.toString(),
+      description: event.description,
+      dayOfWeek: event.dayOfWeek,
+      userId: event.userId.toString(),
+    };
 
-    res.status(201).json(event);
+    res.status(200).json(eventResponse);
   } catch (error: any) {
     if (error.name === 'ValidationError') {
       const validationErrors = error.inner.map((err: any) => ({

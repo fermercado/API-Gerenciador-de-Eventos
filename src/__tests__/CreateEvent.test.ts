@@ -64,7 +64,7 @@ describe('Event Creation', () => {
       .set('Authorization', `Bearer ${userToken}`)
       .send(mockEvent);
 
-    expect(response.status).toBe(201);
+    expect(response.status).toBe(200);
     expect(response.body).toHaveProperty('description', 'Maria Event');
     expect(response.body).toHaveProperty('dayOfWeek', 'monday');
     expect(response.body).toHaveProperty('userId', userId.toString());
@@ -130,7 +130,7 @@ describe('Event Creation', () => {
       .set('Authorization', `Bearer ${userToken}`)
       .send(mockEvent);
 
-    expect(response.status).toBe(201);
+    expect(response.status).toBe(200);
     expect(response.body).toHaveProperty('description', 'Maria Event');
     expect(response.body).toHaveProperty('dayOfWeek', 'monday');
     expect(response.body).toHaveProperty('userId', userId.toString());

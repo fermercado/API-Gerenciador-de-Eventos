@@ -25,10 +25,7 @@ export const deleteEventById = async (req: Request, res: Response) => {
 
     await Event.findByIdAndDelete(eventId);
 
-    // Retornando o evento deletado com status 200
     return res.status(200).json({
-      statusCode: 200,
-      message: 'Event deleted successfully',
       deletedEvent: event,
     });
   } catch (error) {

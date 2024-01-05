@@ -94,7 +94,10 @@ describe('Delete Event By ID', () => {
       .delete(`/api/v1/events/${testEventId}`)
       .set('Authorization', `Bearer ${userToken}`);
 
-    expect(response.status).toBe(204);
+    expect(response.status).toBe(200);
+
+    expect(response.body).toHaveProperty('deletedEvent');
+    expect(response.body.deletedEvent).toHaveProperty('_id', testEventId);
   });
 
   it('should handle non-existent ID', async () => {

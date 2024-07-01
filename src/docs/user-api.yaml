@@ -1,0 +1,371 @@
+openapi: 3.0.0
+info:
+  title: User API
+  description: API for User operations
+  version: 1.0.0
+paths:
+  /api/v1/users/sign-up:
+    post:
+      summary: Create User
+      description: This route will create a new user
+      tags:
+        - Users
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateUserDTO'
+            examples:
+              CreateUser:
+                value:
+                  firstName: string
+                  lastName: string
+                  birthDate: dd/mm/yyyy
+                  city: string
+                  country: string
+                  email: string
+                  password: string
+                  confirmPassword: string
+      responses:
+        '201':
+          description: User created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserResponse'
+              example:
+                id: string
+                firstName: string
+                lastName: string
+                birthDate: dd/mm/yyyy
+                city: string
+                country: string
+                email: string
+        '400':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
+              example:
+                type: Validation Error
+                errors:
+                  - field: email
+                    message: Email already in use
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InternalServerError'
+              example:
+                statusCode: 500
+                error: Internal Server Error
+                message: Something went wrong
+
+  /api/v1/users/sign-in:
+    post:
+      summary: User Login
+      description: This route will authenticate a user and provide a token
+      tags:
+        - Users
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginUserDTO'
+            examples:
+              LoginUser:
+                value:
+                  email: string
+                  password: string
+      responses:
+        '200':
+          description: User logged in successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoginUserResponse'
+              example:
+                token: string
+                user:
+                  id: string
+                  firstName: string
+                  lastName: string
+                  birthDate: dd/mm/yyyy
+                  city: string
+                  country: string
+                  email: string
+        '400':
+          description: Invalid credentials
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
+              example:
+                type: Validation Error
+                errors:
+                  - field: email
+                    message: Invalid email
+                  - field: password
+                    message: Invalid password
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InternalServerError'
+              example:
+                statusCode: 500
+                error: Internal Server Error
+                message: Something went wrong
+
+  /api/v1/users/{id}:
+    put:
+      summary: Update User
+      description: This route will update an existing user
+      tags:
+        - Users
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: The ID of the user to update
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateUserDTO'
+            examples:
+              UpdateUser:
+                value:
+                  firstName: string
+                  lastName: string
+                  birthDate: dd/mm/yyyy
+                  city: string
+                  country: string
+                  email: string
+      responses:
+        '200':
+          description: User updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserResponse'
+              example:
+                id: string
+                firstName: string
+                lastName: string
+                birthDate: dd/mm/yyyy
+                city: string
+                country: string
+                email: string
+        '400':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
+              example:
+                type: Validation Error
+                errors:
+                  - field: email
+                    message: Invalid email
+        '404':
+          description: User not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
+              example:
+                type: Not Found
+                errors:
+                  - field: id
+                    message: User not found
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InternalServerError'
+              example:
+                statusCode: 500
+                error: Internal Server Error
+                message: Something went wrong
+
+components:
+  schemas:
+    CreateUserDTO:
+      type: object
+      properties:
+        firstName:
+          type: string
+          description: First name of the user
+        lastName:
+          type: string
+          description: Last name of the user
+        birthDate:
+          type: string
+          format: date
+          description: Birth date of the user in DD/MM/YYYY format
+        city:
+          type: string
+          description: City of residence of the user
+        country:
+          type: string
+          description: Country of residence of the user
+        email:
+          type: string
+          format: email
+          description: Email address of the user
+        password:
+          type: string
+          format: password
+          description: Password for the user account
+        confirmPassword:
+          type: string
+          format: password
+          description: Confirmation of the password for the user account
+      required:
+        - firstName
+        - lastName
+        - birthDate
+        - email
+        - password
+        - confirmPassword
+      description: A schema for user creation request data
+
+    LoginUserDTO:
+      type: object
+      required:
+        - email
+        - password
+      properties:
+        email:
+          type: string
+          format: email
+          description: The user's email address for login
+        password:
+          type: string
+          format: password
+          description: The user's password for login
+
+    UpdateUserDTO:
+      type: object
+      properties:
+        firstName:
+          type: string
+          description: First name of the user
+        lastName:
+          type: string
+          description: Last name of the user
+        birthDate:
+          type: string
+          format: date
+          description: Birth date of the user in DD/MM/YYYY format
+        city:
+          type: string
+          description: City of residence of the user
+        country:
+          type: string
+          description: Country of residence of the user
+        email:
+          type: string
+          format: email
+          description: Email address of the user
+        password:
+          type: string
+          format: password
+          description: Password for the user account
+      description: A schema for user update request data
+
+    LoginUserResponse:
+      type: object
+      properties:
+        token:
+          type: string
+          description: JWT token for authentication
+        user:
+          type: object
+          properties:
+            id:
+              type: string
+              description: The unique identifier for the user
+            firstName:
+              type: string
+              description: The first name of the user
+            lastName:
+              type: string
+              description: The last name of the user
+            birthDate:
+              type: string
+              description: The birth date of the user
+            city:
+              type: string
+              description: The city of residence of the user
+            country:
+              type: string
+              description: The country of residence of the user
+            email:
+              type: string
+              format: email
+              description: The email of the user
+
+    UserResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          description: The unique identifier for the user
+        firstName:
+          type: string
+          description: The first name of the user
+        lastName:
+          type: string
+          description: The last name of the user
+        birthDate:
+          type: string
+          description: The birth date of the user
+        city:
+          type: string
+          description: The city of residence of the user
+        country:
+          type: string
+          description: The country of residence of the user
+        email:
+          type: string
+          format: email
+          description: The email of the user
+
+    ValidationError:
+      type: object
+      properties:
+        type:
+          type: string
+        errors:
+          type: array
+          items:
+            type: object
+            properties:
+              field:
+                type: string
+                description: The field associated with the validation error
+              message:
+                type: string
+                description: The message describing the validation error
+
+    InternalServerError:
+      type: object
+      properties:
+        statusCode:
+          type: integer
+          format: int32
+        error:
+          type: string
+        message:
+          type: string

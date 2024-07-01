@@ -1,6 +1,7 @@
-import mongoose, { Schema, Document } from 'mongoose';
+import mongoose, { Schema, Document, Model } from 'mongoose';
+import { formatDateToBrazilian } from '../utils/dateUtils';
 
-interface User extends Document {
+export interface IUser extends Document {
   firstName: string;
   lastName: string;
   birthDate: Date;
@@ -10,7 +11,7 @@ interface User extends Document {
   password: string;
 }
 
-const UserSchema = new Schema(
+const UserSchema: Schema = new Schema(
   {
     firstName: { type: String, required: true },
     lastName: { type: String, required: true },
@@ -20,15 +21,32 @@ const UserSchema = new Schema(
     email: { type: String, required: true, unique: true },
     password: { type: String, required: true },
   },
-  { versionKey: false },
+  {
+    versionKey: false,
+    timestamps: true,
+  },
 );
 
 UserSchema.set('toObject', {
   transform: function (doc, ret) {
     delete ret.password;
+    if (ret.birthDate) {
+      ret.birthDate = formatDateToBrazilian(ret.birthDate);
+    }
+    return ret;
   },
 });
 
-const UserModel = mongoose.model<User>('User', UserSchema);
+UserSchema.set('toJSON', {
+  transform: function (doc, ret) {
+    delete ret.password;
+    if (ret.birthDate) {
+      ret.birthDate = formatDateToBrazilian(ret.birthDate);
+    }
+    return ret;
+  },
+});
+
+const UserModel: Model<IUser> = mongoose.model<IUser>('User', UserSchema);
 
 export default UserModel;

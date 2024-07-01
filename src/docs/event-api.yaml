@@ -1,0 +1,447 @@
+openapi: 3.0.0
+info:
+  title: Event API
+  description: API for Event operations
+  version: 1.0.0
+paths:
+  /api/v1/events:
+    post:
+      summary: Create Event
+      description: Create a new event.
+      tags:
+        - Events
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateEvent'
+            examples:
+              CreateEvent:
+                value:
+                  description: Event Description
+                  dayOfWeek: monday
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              example:
+                _id: string
+                description: string
+                dayOfWeek: sunday
+                userId: string
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
+              example:
+                type: Validation Error
+                statusCode: 400
+                errors:
+                  - field: description
+                    message: Description is required
+                  - field: dayOfWeek
+                    message: Day of week is required
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UnauthorizedError'
+              example:
+                statusCode: 401
+                error: Unauthorized
+                message: Not Authenticated
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InternalServerError'
+              example:
+                statusCode: 500
+                error: Internal Server Error
+                message: Something went wrong
+
+    get:
+      summary: Get Events
+      description: Get events for the authenticated user.
+      tags:
+        - Events
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: dayOfWeek
+          in: query
+          description: Filter events by day of the week
+          schema:
+            type: string
+            enum:
+              - sunday
+              - monday
+              - tuesday
+              - wednesday
+              - thursday
+              - friday
+              - saturday
+        - name: description
+          in: query
+          description: Search for events by their description
+          schema:
+            type: string
+        - name: page
+          in: query
+          description: Specify the page of results to retrieve
+          schema:
+            type: integer
+            default: 1
+            minimum: 1
+        - name: limit
+          in: query
+          description: Specify the number of events to return per page
+          schema:
+            type: integer
+            default: 10
+            minimum: 1
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Event'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UnauthorizedError'
+              example:
+                statusCode: 401
+                error: Unauthorized
+                message: Not Authenticated
+        '404':
+          description: Event Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotFoundError'
+              example:
+                statusCode: 404
+                error: Not Found
+                message: Event not found
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InternalServerError'
+              example:
+                statusCode: 500
+                error: Internal Server Error
+                message: Something went wrong
+
+    delete:
+      summary: Delete Events
+      description: Delete all events for the authenticated user.
+      tags:
+        - Events
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: dayOfWeek
+          in: query
+          description: Filter events by day of the week
+          schema:
+            type: string
+            enum:
+              - sunday
+              - monday
+              - tuesday
+              - wednesday
+              - thursday
+              - friday
+              - saturday
+      responses:
+        '200':
+          description: List of deleted events
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  deletedEvents:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Event'
+              example:
+                deletedEvents:
+                  - _id: string
+                    description: string
+                    dayOfWeek: sunday
+                    userId: string
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
+              example:
+                statusCode: 400
+                error: Bad Request
+                message: Invalid day of the week.
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UnauthorizedError'
+              example:
+                statusCode: 401
+                error: Unauthorized
+                message: Not Authenticated
+        '404':
+          description: Event Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotFoundError'
+              example:
+                statusCode: 404
+                error: Not Found
+                message: No events found for deletion.
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InternalServerError'
+              example:
+                statusCode: 500
+                error: Internal Server Error
+                message: Something went wrong
+
+  /api/v1/events/{id}:
+    get:
+      summary: Get Event by ID
+      description: Get a specific event by its ID.
+      tags:
+        - Events
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          description: ID of the event
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Event'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              example:
+                statusCode: 401
+                error: Unauthorized
+                message: Not Authenticated
+        '404':
+          description: Event Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotFoundError'
+              example:
+                statusCode: 404
+                error: Not Found
+                message: Not found
+        '400':
+          description: Invalid ID supplied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InternalServerError'
+              example:
+                statusCode: 500
+                error: Internal Server Error
+                message: Something went wrong
+
+    delete:
+      summary: Delete Event by ID
+      description: Delete a specific event by its ID.
+      tags:
+        - Events
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          description: ID of the event
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Event deleted
+          content:
+            application/json:
+              example:
+                statusCode: 200
+                message: Event deleted
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  statusCode:
+                    type: integer
+                  error:
+                    type: string
+                  message:
+                    type: string
+              example:
+                statusCode: 401
+                error: Unauthorized
+                message: Not Authenticated
+        '400':
+          description: Invalid ID supplied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
+              example:
+                statusCode: 400
+                error: Bad Request
+                message: Invalid Id
+        '404':
+          description: Event Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotFoundError'
+              example:
+                statusCode: 404
+                error: Not Found
+                message: Not found
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InternalServerError'
+              example:
+                statusCode: 500
+                error: Internal Server Error
+                message: Something went wrong
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    CreateEvent:
+      type: object
+      properties:
+        description:
+          type: string
+          description: Description of the event
+        dayOfWeek:
+          type: string
+          enum:
+            - sunday
+            - monday
+            - tuesday
+            - wednesday
+            - thursday
+            - friday
+            - saturday
+          description: Day of the week for the event
+        userId:
+          type: string
+          description: ID of the user associated with the event
+      required:
+        - description
+        - dayOfWeek
+        - userId
+
+    Event:
+      type: object
+      properties:
+        id:
+          type: string
+          description: The unique identifier for the event
+        description:
+          type: string
+          description: Description of the event
+        dayOfWeek:
+          type: string
+          description: Day of the week when the event occurs
+        userId:
+          type: string
+          description: The ID of the user who created the event
+
+    UnauthorizedError:
+      type: object
+      properties:
+        statusCode:
+          type: integer
+          format: int32
+          example: 401
+        error:
+          type: string
+          example: Unauthorized
+        message:
+          type: string
+          example: Not authenticated
+
+    NotFoundError:
+      type: object
+      properties:
+        statusCode:
+          type: integer
+          format: int32
+          example: 404
+        error:
+          type: string
+          example: Not Found
+        message:
+          type: string
+          example: No events found
+
+    InternalServerError:
+      type: object
+      properties:
+        statusCode:
+          type: integer
+          format: int32
+          example: 500
+        error:
+          type: string
+          example: Internal Server Error
+        message:
+          type: string
+          example: Something went wrong

@@ -1,26 +1,30 @@
 import express, { Application } from 'express';
-import dotenv from 'dotenv';
+import cors from 'cors';
 import { connectToMongoDB } from './database/db';
 import EventRoutes from './routes/EventRoutes';
 import userRoutes from './routes/UsersRoutes';
-import swaggerUi from 'swagger-ui-express';
-import swaggerOptions from './swaggerOptions.json';
-
-if (process.env.NODE_ENV === 'test') {
-  dotenv.config({ path: '.env.test' });
-} else {
-  dotenv.config();
-}
+import setupSwagger from './swagger';
+import { errorHandler } from './middlewares/ErrorHandler';
 
 const app: Application = express();
 const port = process.env.PORT || 3000;
 
+app.use(
+  cors({
+    origin: '*',
+    methods: ['GET', 'POST', 'PUT', 'DELETE'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+  }),
+);
+
 app.use(express.json());
 
-app.use('/api/v1/users', userRoutes);
-app.use('/api/v1/events', EventRoutes);
+setupSwagger(app);
 
-app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerOptions));
+app.use(userRoutes);
+app.use(EventRoutes);
+
+app.use(errorHandler);
 
 app.get('/', (req, res) => {
   res.redirect('/api-docs');
@@ -29,9 +33,8 @@ app.get('/', (req, res) => {
 if (process.env.NODE_ENV !== 'test') {
   app.listen(port, () => {
     console.log(`Servidor rodando em http://localhost:${port}`);
+    connectToMongoDB();
   });
-
-  connectToMongoDB();
 }
 
 export default app;

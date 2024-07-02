@@ -19,7 +19,7 @@ Gerenciador de Eventos é uma plataforma desenvolvida em Node.js e TypeScript, u
 
 ## Documentação da API hospedada
 
-Você pode acessar a documentação interativa da API FastFeet através do seguinte link:  
+Você pode acessar a documentação interativa da API-Gerenciador-de-Eventos através do seguinte link:  
 [Documentação Gerenciador de Eventos ](https://gerenciador-de-eventos.onrender.com)
 
 **Nota:** A aplicação está hospedada no Render, o que pode resultar em uma inicialização mais lenta se o serviço estiver inativo. Aguarde alguns segundos após abrir o link.

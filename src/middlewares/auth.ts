@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
-import jwt from 'jsonwebtoken';
+import { JwtService } from '../services/jwt/JwtService';
 
 declare global {
   namespace Express {
@@ -9,22 +9,34 @@ declare global {
   }
 }
 
-export const authenticateUser = (
-  req: Request,
-  res: Response,
-  next: NextFunction,
-) => {
-  const token = req.header('Authorization')?.replace('Bearer ', '');
+const jwtService = new JwtService();
 
-  if (!token) {
-    return next();
-  }
+export const authenticateUserFactory = (jwtServiceInstance: JwtService) => {
+  return (req: Request, res: Response, next: NextFunction) => {
+    const token = req.header('Authorization')?.replace('Bearer ', '');
 
-  try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET || '');
-    req.userId = (decoded as { userId: string }).userId;
-    return next();
-  } catch (error) {
-    return next();
-  }
+    if (!token) {
+      return res.status(401).json({
+        statusCode: 401,
+        error: 'Unauthorized',
+        message: 'Not authenticated',
+      });
+    }
+
+    try {
+      const decoded = jwtServiceInstance.verifyToken(token) as {
+        userId: string;
+      };
+      req.userId = decoded.userId;
+      next();
+    } catch (error) {
+      return res.status(401).json({
+        statusCode: 401,
+        error: 'Unauthorized',
+        message: 'Not authenticated',
+      });
+    }
+  };
 };
+
+export const authenticateUser = authenticateUserFactory(jwtService);

@@ -1,15 +1,18 @@
 module.exports = {
-  globals: {
-    'process.env': {
-      NODE_ENV: 'test',
-    },
-  },
   preset: 'ts-jest',
   testEnvironment: 'node',
-  moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json', 'node'],
-  testMatch: ['**/*.test.ts'],
+  testMatch: ['**/__tests__/**/*.ts'],
+  setupFilesAfterEnv: ['jest-extended/all'],
   collectCoverage: true,
-  collectCoverageFrom: ['src/controllers/**/*.ts'],
   coverageDirectory: 'coverage',
-  coverageReporters: ['text', 'lcov'],
+  coverageThreshold: {
+    global: {
+      branches: 80,
+      functions: 80,
+      lines: 80,
+      statements: 80,
+    },
+  },
+  testPathIgnorePatterns: ['/node_modules/'],
+  verbose: true,
 };

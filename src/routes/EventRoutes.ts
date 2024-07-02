@@ -1,24 +1,34 @@
 import express from 'express';
-import { createEvent } from '../controllers/events/CreateEvent';
-import { getEvents } from '../controllers/events/GetEvents';
-import { getEventById } from '../controllers/events/GetEventsById';
-import { deleteEvents } from '../controllers/events/DeleteEvents';
-import { deleteEventById } from '../controllers/events/DeleteEventById';
-
+import { EventController } from '../controllers/events/EventController';
 import { authenticateUser } from '../middlewares/auth';
+import {
+  validateEventCreation,
+  validateDayOfWeek,
+} from '../middlewares/validateEvent';
 
 const router = express.Router();
+const eventController = new EventController();
 
-router.use(authenticateUser);
+router.use('/api/v1/events', authenticateUser);
 
-router.post('/', createEvent);
-
-router.get('/', getEvents);
-
-router.get('/:id', getEventById);
-
-router.delete('/:id', deleteEventById);
-
-router.delete('/', deleteEvents);
+router.post(
+  '/api/v1/events',
+  validateEventCreation,
+  eventController.createEvent.bind(eventController),
+);
+router.get('/api/v1/events', eventController.getEvents.bind(eventController));
+router.get(
+  '/api/v1/events/:id',
+  eventController.getEventById.bind(eventController),
+);
+router.delete(
+  '/api/v1/events/:id',
+  eventController.deleteEventById.bind(eventController),
+);
+router.delete(
+  '/api/v1/events',
+  validateDayOfWeek,
+  eventController.deleteEvents.bind(eventController),
+);
 
 export default router;

@@ -6,7 +6,7 @@ const options = {
   definition: {
     openapi: '3.0.0',
     info: {
-      title: 'Gerenciador de Eventos',
+      title: 'API-Gerenciador-de-Eventos',
       version: '2.0.0',
       description:
         'Gerenciador de Eventos é uma plataforma desenvolvida em Node.js e TypeScript, utilizando MongoDB para o armazenamento de dados. O sistema, encapsulado em Docker e estruturado segundo a arquitetura MVC, permite a criacão de usuários e a gestão de eventos, incluindo funcionalidades de CRUD. É uma solução prática de controle sobre eventos e cadastro de usuários, com facilidade de manutenção e operação.',

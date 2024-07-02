@@ -1,93 +1,174 @@
-# Event Management API
+# Gerenciador de Eventos 🚀
 
-## 🌟 Introduction
+## Descrição 📝
 
-Welcome to the Event Management API! This project is a backend application developed with Node.js and TypeScript, focused on event management. It includes technologies such as Express.js, Yup for validation, JWT authentication, bcrypt for password hashing, Jest for unit testing, API documentation via Swagger, MongoDB, ESLint and Prettier for code quality, as well as the use of `dotenv` for environment variable management and `Docker` for containerization and deployment.
+Gerenciador de Eventos é uma plataforma desenvolvida em Node.js e TypeScript, utilizando MongoDB para o armazenamento de dados. O sistema, encapsulado em Docker e estruturado segundo a arquitetura MVC, permite a criacão de usuários e a gestão de eventos, incluindo funcionalidades de CRUD. É uma solução prática de controle sobre eventos e cadastro de usuários, com facilidade de manutenção e operação.
 
-## 🚀 Technologies Used
+## 🛠️ Tecnologias e Ferramentas Utilizadas
 
-- **Node.js & TypeScript**: For a robust backend with strong typing.
-- **Express.js**: Web framework for Node.js.
-- **Yup**: For schema validation.
-- **JWT (JSON Web Tokens)**: For authentication and route security.
-- **Bcrypt**: Used for password hashing.
-- **Jest**: For efficient unit testing.
-- **Swagger**: For interactive API documentation.
-- **MongoDB**: As a NoSQL database.
-- **ESLint & Prettier**: To keep code consistent and clean.
-- **Dotenv**: For managing environment variables.
-- **Docker**: For containerization and facilitating deployment.
+- **Node.js**: Plataforma para execução de JavaScript no servidor.
+- **TypeScript (v5.3.3)**: JavaScript com tipagem estática.
+- **Express (v4.18.2)**: Framework web para Node.js.
+- **Mongoose (v8.0.3)**: Biblioteca para modelar dados no MongoDB.
+- **JSON Web Token - JWT (v9.0.2)**: Biblioteca para autenticação e autorização.
+- **bcryptjs (v2.4.3)**: Biblioteca para hashing de senhas.
+- **Swagger UI Express (v5.0.1)** e **Swagger JSDoc (v6.2.8)**: Ferramentas para documentação de APIs.
+- **Yup (v1.3.3)**: Biblioteca para validação de esquemas de dados.
 
-## 📋 API Features
+## 🚀 Começando
 
-### Users
+## Documentação da API hospedada
 
-- **User Registration**
-  - Endpoint: `/api/v1/users/sign-up`
-  - Description: Allows user registration in the system.
-- **User Login**
-  - Endpoint: `/api/v1/users/sign-in`
-  - Description: Authenticates registered users.
+Você pode acessar a documentação interativa da API-Gerenciador-de-Eventos através do seguinte link:  
+[Documentação Gerenciador de Eventos ](https://gerenciador-de-eventos.onrender.com)
 
-### Events
+**Nota:** A aplicação está hospedada no Render, o que pode resultar em uma inicialização mais lenta se o serviço estiver inativo. Aguarde alguns segundos após abrir o link.
 
-- **Event Creation**
-  - Endpoint: `/api/v1/events`
-  - Method: POST
-  - Description: Adds a new event to the system. (Authentication required)
-- **Listing All Events**
-  - Endpoint: `/api/v1/events`
-  - Method: GET
-  - Description: Displays all registered events. (Authentication required)
-- **Deletion of Events by Day of the Week**
-  - Endpoint: `/api/v1/events`
-  - Method: DELETE
-  - Description: Removes events according to the day of the week. (Authentication required)
-- **Event Detail by ID**
-  - Endpoint: `/api/v1/events/:id`
-  - Method: GET
-  - Description: Shows details of a specific event. (Authentication required)
-- **Event Deletion by ID**
-  - Endpoint: `/api/v1/events/:id`
-  - Method: DELETE
-  - Description: Deletes a specific event. (Authentication required)
+### Rodando o Projeto Localmente
 
-## 🛠️ Configuration and Execution
+Para rodar o projeto localmente, siga os passos abaixo:
 
-```sh
-# Clone the Repository
-git clone https://github.com/fermercado/Challenge-3-Node-AWS.git
-```
+## Instalação
 
-```sh
-# Install Dependencies
-npm install
-```
+1. **Clone este repositório:**
+   ```sh
+   git clone https://github.com/fermercado/Gerenciador-de-Eventos.git
+   ```
+2. **Navegue até o diretório do projeto:**
+   ```sh
+   cd Gerenciador-de-Eventos
+   ```
+3. **Instale as dependências:**
+   ```sh
+   npm install
+   ```
+4. **Renomeie o arquivo de exemplo de variáveis de ambiente:**
 
-## Environment Configuration
+   Renomeie o arquivo `.env.example` para `.env`:
 
--Rename the `.env.example` file to `.env`.
--Fill in the necessary information in the `.env` file, such as environment variables for database connection, JWT secret key, etc.
+   ```bash
+   mv .env.example .env
+   ```
 
-## Use Docker
+5. **Configure as variáveis de ambiente:**
+   ```env
+   MONGODB_USERNAME=
+   MONGODB_PASSWORD=
+   JWT_SECRET=
+   MONGODB_HOST=
+   MONGODB_DATABASE=
+   ```
 
--To containerize and run the project, use Docker.
--Deployment was done using Docker and is available at: https://challenger-3-compass.onrender.com"
+### 🧪 Testando o Projeto
 
-```sh
-# Run the Project
-npm run dev
-```
+Para rodar os testes, use o seguinte comando:
 
-## 📚 API Documentation
-
--Access the API documentation through Swagger UI for a detailed exploration of the routes.
-
-## 🧪 Tests
-
-```sh
-# To run unit tests with Jest, execute:
+```bash
 npm run test
 ```
 
--This API offers a complete solution for event management, from user registration to event administration, with an emphasis on security and efficiency. Contributions and feedback are always welcome! For more information or support, please contact me.
+### 🚀 Iniciando o Servidor
+
+Para iniciar o servidor, use o seguinte comando:
+
+```bash
+npm start
+```
+
+## 📃 Documentação da API com Swagger local
+
+A documentação completa da API está disponível e pode ser acessada via Swagger UI. Isso permite que você visualize e interaja com a API's endpoints diretamente através do navegador.
+
+Para acessar a documentação Swagger e testar os endpoints:
+
+```bash
+http://localhost:3000/
+```
+
+### Endpoints
+
+#### Criar Usuário
+
+- **Endpoint:** `/api/v1/users/sign-up`
+- **Método:** `POST`
+- **Descrição:** Cria um novo usuário.
+- **Body:**
+  ```json
+  {
+    "firstName": "string",
+    "lastName": "string",
+    "birthDate": "dd/mm/yyyy",
+    "city": "string",
+    "country": "string",
+    "email": "string",
+    "password": "string",
+    "confirmPassword": "string"
+  }
+  ```
+
+#### Login de Usuário
+
+- **Endpoint:** `/api/v1/users/sign-in`
+- **Método:** `POST`
+- **Descrição:** Realiza o login de um usuário.
+- **Body:**
+  ```json
+  {
+    "email": "string",
+    "password": "string"
+  }
+  ```
+
+#### Atualizar Usuário
+
+- **Endpoint:** `/api/v1/users/:id`
+- **Método:** `PUT`
+- **Descrição:** Atualiza um usuário existente.
+- **Body:**
+  ```json
+  {
+    "firstName": "string",
+    "lastName": "string",
+    "birthDate": "dd/mm/yyyy",
+    "city": "string",
+    "country": "string",
+    "email": "string"
+  }
+  ```
+
+#### Criar Evento
+
+- **Endpoint:** `/api/v1/events`
+- **Método:** `POST`
+- **Descrição:** Cria um novo evento.
+- **Body:**
+  ```json
+  {
+    "description": "Event Description",
+    "dayOfWeek": "monday"
+  }
+  ```
+
+#### Listar Eventos
+
+- **Endpoint:** `/api/v1/events`
+- **Método:** `GET`
+- **Descrição:** Lista todos os eventos.
+
+#### Obter Evento por ID
+
+- **Endpoint:** `/api/v1/events/:id`
+- **Método:** `GET`
+- **Descrição:** Obtém os detalhes de um evento específico.
+
+#### Deletar Evento por ID
+
+- **Endpoint:** `/api/v1/events/:id`
+- **Método:** `DELETE`
+- **Descrição:** Remove um evento específico.
+
+#### Deletar Eventos por Dia da Semana
+
+- **Endpoint:** `/api/v1/events`
+- **Método:** `DELETE`
+- **Descrição:** Remove eventos de um dia específico da semana.
